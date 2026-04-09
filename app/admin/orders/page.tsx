@@ -55,24 +55,24 @@ export default async function AdminOrdersPage({
         description="Ouvrez les details d'une commande, verifiez les coordonnees client et mettez a jour son avancement sans quitter l'ecran. Cette page ne charge que les donnees utiles aux commandes."
         aside={
           <>
-            <p className="text-xs uppercase tracking-[0.2em] text-white/60">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
               Synthese rapide
             </p>
             <div className="mt-4 space-y-3">
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Commandes totales
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.totalOrders}</p>
               </div>
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   A traiter
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.pendingOrders}</p>
               </div>
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Revenus encaisses
                 </p>
                 <p className="mt-2 text-3xl font-semibold">

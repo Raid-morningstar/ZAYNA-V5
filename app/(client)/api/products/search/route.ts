@@ -1,29 +1,33 @@
-import { searchProducts } from "@/lib/queries";
+import { searchProducts, SortOption } from "@/lib/queries";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
-    const selectedCategory = req.nextUrl.searchParams.get("category")?.trim() || "";
-    const selectedBrand = req.nextUrl.searchParams.get("brand")?.trim() || "";
-    const q = req.nextUrl.searchParams.get("q")?.trim() || "";
-    const limit = Number(req.nextUrl.searchParams.get("limit") || "");
+    const params = req.nextUrl.searchParams;
 
-    const minPriceParam = req.nextUrl.searchParams.get("minPrice");
-    const maxPriceParam = req.nextUrl.searchParams.get("maxPrice");
+    const categoriesParam = params.get("categories")?.trim() || "";
+    const brandsParam = params.get("brands")?.trim() || "";
+    const selectedCategories = categoriesParam ? categoriesParam.split(",").map((s) => s.trim()).filter(Boolean) : [];
+    const selectedBrands = brandsParam ? brandsParam.split(",").map((s) => s.trim()).filter(Boolean) : [];
+
+    const q = params.get("q")?.trim() || "";
+    const limit = Number(params.get("limit") || "");
+    const sortBy = (params.get("sort") || "relevance") as SortOption;
+
+    const minPriceParam = params.get("minPrice");
+    const maxPriceParam = params.get("maxPrice");
     const parsedMin = minPriceParam ? Number(minPriceParam) : NaN;
     const parsedMax = maxPriceParam ? Number(maxPriceParam) : NaN;
     const hasPriceFilter = Number.isFinite(parsedMin) && Number.isFinite(parsedMax);
 
-    const minPrice = hasPriceFilter ? parsedMin : 0;
-    const maxPrice = hasPriceFilter ? parsedMax : 0;
-
     const products = await searchProducts({
-      selectedCategory,
-      selectedBrand,
+      selectedCategories,
+      selectedBrands,
       searchTerm: q,
-      minPrice: hasPriceFilter ? minPrice : null,
-      maxPrice: hasPriceFilter ? maxPrice : null,
+      minPrice: hasPriceFilter ? parsedMin : null,
+      maxPrice: hasPriceFilter ? parsedMax : null,
       limit: Number.isFinite(limit) && limit > 0 ? limit : undefined,
+      sortBy,
     });
 
     return NextResponse.json(products, {

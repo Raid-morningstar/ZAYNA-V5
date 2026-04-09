@@ -163,12 +163,16 @@ const SearchBarContent = ({
           { retries: 1, retryDelayMs: 300 }
         );
         if (searchRequestIdRef.current === requestId) {
-          suggestionCacheRef.current.set(cacheKey, data || []);
+          const cache = suggestionCacheRef.current;
+          if (cache.size >= 50) {
+            cache.delete(cache.keys().next().value!);
+          }
+          cache.set(cacheKey, data || []);
           setSuggestions(data || []);
         }
       } catch (error) {
         if (searchRequestIdRef.current === requestId) {
-          console.log("Search suggestion fetching Error", error);
+          console.error("Search suggestion fetching Error", error);
           setSuggestions([]);
         }
       } finally {

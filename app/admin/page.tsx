@@ -174,19 +174,19 @@ export default async function AdminPage({
           <>
             <Link
               href="/admin/orders"
-              className="inline-flex items-center justify-center rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-shop_btn_dark_green transition-transform hover:-translate-y-0.5"
+              className="inline-flex items-center justify-center rounded-2xl bg-shop_btn_dark_green px-4 py-2.5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
             >
               Ouvrir les commandes
             </Link>
             <Link
               href="/admin/products#new-product"
-              className="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/8 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/15"
+              className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
             >
               Ajouter un produit
             </Link>
             <Link
               href="/admin/promos#new-promo"
-              className="inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/8 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/15"
+              className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
             >
               Lancer une promo
             </Link>
@@ -195,56 +195,56 @@ export default async function AdminPage({
         aside={
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-white/90" />
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/68">
+              <Sparkles className="h-4 w-4 text-shop_btn_dark_green" />
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
                 Capteurs prioritaires
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 md:grid-cols-1">
-              <div className="rounded-[24px] border border-white/10 bg-black/15 p-4">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-white/58">
+              <div className="rounded-[24px] border border-slate-200 bg-slate-100 p-4">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
                   A traiter
                 </p>
-                <p className="mt-2 text-3xl font-semibold text-white">{data.metrics.pendingOrders}</p>
-                <p className="mt-2 text-xs text-white/68">Commandes encore en circuit operatoire.</p>
+                <p className="mt-2 text-3xl font-semibold text-slate-900">{data.metrics.pendingOrders}</p>
+                <p className="mt-2 text-xs text-slate-500">Commandes encore en circuit operatoire.</p>
               </div>
-              <div className="rounded-[24px] border border-white/10 bg-black/15 p-4">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-white/58">
+              <div className="rounded-[24px] border border-slate-200 bg-slate-100 p-4">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
                   Stock sensible
                 </p>
-                <p className="mt-2 text-3xl font-semibold text-white">{data.metrics.lowStockProducts}</p>
-                <p className="mt-2 text-xs text-white/68">Produits a reapprovisionner rapidement.</p>
+                <p className="mt-2 text-3xl font-semibold text-slate-900">{data.metrics.lowStockProducts}</p>
+                <p className="mt-2 text-xs text-slate-500">Produits a reapprovisionner rapidement.</p>
               </div>
-              <div className="rounded-[24px] border border-white/10 bg-black/15 p-4">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-white/58">
+              <div className="rounded-[24px] border border-slate-200 bg-slate-100 p-4">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
                   Promos proches
                 </p>
-                <p className="mt-2 text-3xl font-semibold text-white">{data.metrics.expiringPromoCodes}</p>
-                <p className="mt-2 text-xs text-white/68">Codes promo a verifier cette semaine.</p>
+                <p className="mt-2 text-3xl font-semibold text-slate-900">{data.metrics.expiringPromoCodes}</p>
+                <p className="mt-2 text-xs text-slate-500">Codes promo a verifier cette semaine.</p>
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-white/10 bg-white/8 p-4">
+            <div className="rounded-[24px] border border-slate-200 bg-slate-100 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-white/58">
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
                     Cadence recente
                   </p>
-                  <p className="mt-2 text-sm font-semibold text-white">{latestWeekLabel}</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{latestWeekLabel}</p>
                 </div>
                 <span
                   className={cn(
                     "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset",
                     orderTrend >= 0
-                      ? "bg-emerald-400/12 text-emerald-50 ring-emerald-200/22"
-                      : "bg-rose-400/12 text-rose-50 ring-rose-200/22"
+                      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                      : "bg-rose-50 text-rose-700 ring-rose-200"
                   )}
                 >
                   {formatSignedPercent(orderTrend)}
                 </span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-white/72">
+              <p className="mt-3 text-sm leading-6 text-slate-600">
                 {latestWeekOrders} commandes creees et {adminCurrencyFormatter.format(latestWeekRevenue)} encaisses
                 sur la fenetre glissante la plus recente.
               </p>

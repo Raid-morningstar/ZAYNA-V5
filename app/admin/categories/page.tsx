@@ -56,24 +56,24 @@ export default async function AdminCategoriesPage({
         description="Cette page est dediee aux categories. Vous pouvez creer, mettre en avant et illustrer chaque rayon sans charger toute la gestion produits."
         aside={
           <>
-            <p className="text-xs uppercase tracking-[0.2em] text-white/60">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
               Reperes
             </p>
             <div className="mt-4 space-y-3">
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Categories
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.totalCategories}</p>
               </div>
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Mises en avant
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.featuredCategories}</p>
               </div>
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Produits classes
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.totalProducts}</p>

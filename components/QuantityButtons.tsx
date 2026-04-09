@@ -1,6 +1,5 @@
 import { Product } from "@/types";
 import useStore from "@/store";
-import React from "react";
 import { Button } from "./ui/button";
 import { Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,19 +19,16 @@ const QuantityButtons = ({ product, className }: Props) => {
 
   const handleRemoveProduct = () => {
     removeItem(product?._id);
-    if (itemCount > 1) {
-      toast.success("Quantite reduite avec succes !");
-    } else {
-      toast.success(`${product?.name?.substring(0, 12)} retire avec succes !`);
+    if (itemCount <= 1) {
+      toast.success(`${product?.name?.substring(0, 20)} retiré du panier`);
     }
   };
 
   const handleAddToCart = () => {
     if ((product?.stock as number) > itemCount) {
       addItem(product);
-      toast.success("Quantite augmentee avec succes !");
     } else {
-      toast.error("Impossible d'ajouter plus que le stock disponible");
+      toast.error("Stock maximum atteint pour ce produit");
     }
   };
 

@@ -54,24 +54,24 @@ export default async function AdminPromosPage({
         description="Cette page rassemble uniquement les codes promo et leurs parametres essentiels. C'est plus rapide a ouvrir, plus simple a relire et plus confortable sur mobile."
         aside={
           <>
-            <p className="text-xs uppercase tracking-[0.2em] text-white/60">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
               Vue rapide
             </p>
             <div className="mt-4 space-y-3">
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Codes promo
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.totalPromoCodes}</p>
               </div>
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Actifs
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.activePromoCodes}</p>
               </div>
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Expirent vite
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.expiringPromoCodes}</p>

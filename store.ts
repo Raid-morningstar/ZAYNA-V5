@@ -80,7 +80,7 @@ const useStore = create<StoreState>()(
         return get().items.reduce((total, item) => {
           const price = item.product.price ?? 0;
           const discount = ((item.product.discount ?? 0) * price) / 100;
-          const discountedPrice = price + discount;
+          const discountedPrice = price - discount;
           return total + discountedPrice * item.quantity;
         }, 0);
       },

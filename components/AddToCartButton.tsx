@@ -23,11 +23,9 @@ const AddToCartButton = ({ product, className }: Props) => {
   const handleAddToCart = () => {
     if ((product.stock as number) > itemCount) {
       addItem(product);
-      toast.success(
-        `${product.name?.substring(0, 12)}... ajoute avec succes !`
-      );
+      toast.success(`${product.name?.substring(0, 24)} ajouté au panier`);
     } else {
-      toast.error("Impossible d'ajouter plus que le stock disponible");
+      toast.error("Stock maximum atteint pour ce produit");
     }
   };
   return (

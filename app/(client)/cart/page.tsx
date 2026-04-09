@@ -67,7 +67,7 @@ const CartPage = () => {
   const { isSignedIn } = useAuth();
   const [addresses, setAddresses] = useState<Address[] | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cmi_card");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
   const [installmentMonths, setInstallmentMonths] = useState<number>(3);
   const [canUseInstallments, setCanUseInstallments] = useState(false);
   const [loyalty, setLoyalty] = useState<{

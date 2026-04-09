@@ -193,27 +193,23 @@ export function AdminPageHero({
   aside?: ReactNode;
 }) {
   return (
-    <section
-      className="overflow-hidden rounded-[34px] border border-shop_light_green/15 text-white shadow-[0_34px_110px_-58px_rgba(16,38,84,1)]"
-      style={{
-        backgroundImage:
-          "linear-gradient(135deg, rgba(16, 38, 84, 1), rgba(24, 54, 114, 0.96) 45%, rgba(77, 182, 198, 0.9) 150%)",
-      }}
-    >
-      <div className="grid gap-6 p-6 md:grid-cols-[minmax(0,1fr)_320px] md:p-8">
+    <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_8px_32px_-16px_rgba(15,23,42,0.12)]">
+      <div className="grid gap-6 p-6 md:grid-cols-[minmax(0,1fr)_auto] md:p-8">
         <div>
-          <Badge className="bg-white/12 text-white hover:bg-white/12">{badge}</Badge>
-          <h1 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight md:text-4xl">
+          <Badge className="bg-shop_light_green/15 text-shop_btn_dark_green hover:bg-shop_light_green/15">
+            {badge}
+          </Badge>
+          <h1 className="mt-3 max-w-3xl text-2xl font-semibold tracking-tight text-slate-950 md:text-3xl">
             {title}
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/76 md:text-base">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
             {description}
           </p>
-          {actions ? <div className="mt-6 flex flex-wrap gap-3">{actions}</div> : null}
+          {actions ? <div className="mt-5 flex flex-wrap gap-3">{actions}</div> : null}
         </div>
 
         {aside ? (
-          <div className="rounded-[28px] border border-white/10 bg-white/8 p-5 backdrop-blur">
+          <div className="rounded-[22px] border border-slate-100 bg-slate-50/80 p-5">
             {aside}
           </div>
         ) : null}

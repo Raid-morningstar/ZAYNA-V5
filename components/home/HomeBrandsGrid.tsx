@@ -24,7 +24,7 @@ export default function HomeBrandsGrid({ brands }: HomeBrandsGridProps) {
         return (
           <Link
             key={brand._id}
-            href={slug ? `/brand/${slug}` : "/shop"}
+            href={slug ? `/shop?brand=${slug}` : "/shop"}
             className="group flex h-[5.5rem] items-center justify-center rounded-[12px] border border-shop_light_green/20 bg-white px-4 shadow-[0_12px_24px_-22px_rgba(22,46,110,0.4)] transition-all duration-300 hover:-translate-y-0.5 hover:border-shop_light_green/55"
           >
             {brand.image ? (

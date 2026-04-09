@@ -38,8 +38,8 @@ const ShopPage = async ({
     getCategories(),
     getAllBrands(),
     searchProducts({
-      selectedCategory: initialSelectedCategory || undefined,
-      selectedBrand: initialSelectedBrand || undefined,
+      selectedCategories: initialSelectedCategory ? [initialSelectedCategory] : [],
+      selectedBrands: initialSelectedBrand ? [initialSelectedBrand] : [],
       searchTerm: initialSearchTerm || undefined,
       minPrice: hasPriceFilter ? parsedMinPrice : null,
       maxPrice: hasPriceFilter ? parsedMaxPrice : null,

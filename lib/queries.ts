@@ -45,38 +45,53 @@ const productSelect = {
   },
 };
 
+export type SortOption = "relevance" | "price_asc" | "price_desc" | "name_asc" | "name_desc";
+
 type SearchProductsInput = {
   selectedCategory?: string;
+  selectedCategories?: string[];
   selectedCategoryId?: string;
   selectedBrand?: string;
+  selectedBrands?: string[];
   searchTerm?: string;
   minPrice?: number | null;
   maxPrice?: number | null;
   limit?: number;
+  sortBy?: SortOption;
 };
 
 const STOREFRONT_REVALIDATE = 300;
 const PRODUCT_SEARCH_REVALIDATE = 120;
 
+const VALID_SORT_OPTIONS: SortOption[] = ["relevance", "price_asc", "price_desc", "name_asc", "name_desc"];
+
 const normalizeSearchProductsInput = ({
   selectedCategory,
+  selectedCategories,
   selectedCategoryId,
   selectedBrand,
+  selectedBrands,
   searchTerm,
   minPrice,
   maxPrice,
   limit,
-}: SearchProductsInput) => ({
-  selectedCategory: selectedCategory?.trim() || "",
-  selectedCategoryId: selectedCategoryId?.trim() || "",
-  selectedBrand: selectedBrand?.trim() || "",
-  searchTerm: searchTerm?.trim() || "",
-  minPrice:
-    typeof minPrice === "number" && Number.isFinite(minPrice) ? minPrice : null,
-  maxPrice:
-    typeof maxPrice === "number" && Number.isFinite(maxPrice) ? maxPrice : null,
-  limit: typeof limit === "number" && Number.isFinite(limit) && limit > 0 ? limit : null,
-});
+  sortBy,
+}: SearchProductsInput) => {
+  const cats = selectedCategories?.filter(Boolean) || (selectedCategory?.trim() ? [selectedCategory.trim()] : []);
+  const brnds = selectedBrands?.filter(Boolean) || (selectedBrand?.trim() ? [selectedBrand.trim()] : []);
+  return {
+    selectedCategories: cats,
+    selectedCategoryId: selectedCategoryId?.trim() || "",
+    selectedBrands: brnds,
+    searchTerm: searchTerm?.trim() || "",
+    minPrice:
+      typeof minPrice === "number" && Number.isFinite(minPrice) ? minPrice : null,
+    maxPrice:
+      typeof maxPrice === "number" && Number.isFinite(maxPrice) ? maxPrice : null,
+    limit: typeof limit === "number" && Number.isFinite(limit) && limit > 0 ? limit : null,
+    sortBy: sortBy && VALID_SORT_OPTIONS.includes(sortBy) ? sortBy : ("relevance" as SortOption),
+  };
+};
 
 const getCachedCategories = unstable_cache(
   async (quantity?: number): Promise<Category[]> => {
@@ -239,23 +254,23 @@ const getCachedSearchProducts = unstable_cache(
       });
     }
 
-    if (input.selectedCategory) {
+    if (input.selectedCategories.length > 0) {
       filters.push({
         categories: {
           some: {
             category: {
-              slug: input.selectedCategory,
+              slug: { in: input.selectedCategories },
             },
           },
         },
       });
     }
 
-    if (input.selectedBrand) {
+    if (input.selectedBrands.length > 0) {
       filters.push({
         brand: {
           is: {
-            slug: input.selectedBrand,
+            slug: { in: input.selectedBrands },
           },
         },
       });
@@ -289,11 +304,15 @@ const getCachedSearchProducts = unstable_cache(
       });
     }
 
+    const orderBy: Prisma.ProductOrderByWithRelationInput =
+      input.sortBy === "price_asc"  ? { price: "asc" } :
+      input.sortBy === "price_desc" ? { price: "desc" } :
+      input.sortBy === "name_desc"  ? { name: "desc" } :
+      { name: "asc" };
+
     const products = await prisma.product.findMany({
       where: filters.length ? { AND: filters } : undefined,
-      orderBy: {
-        name: "asc",
-      },
+      orderBy,
       take: input.limit || undefined,
       select: productSelect,
     });
@@ -334,22 +353,28 @@ export const getAllProductSlugs = async () => getCachedAllProductSlugs();
 
 export const searchProducts = async ({
   selectedCategory,
+  selectedCategories,
   selectedCategoryId,
   selectedBrand,
+  selectedBrands,
   searchTerm,
   minPrice,
   maxPrice,
   limit,
+  sortBy,
 }: SearchProductsInput): Promise<Product[]> => {
   return getCachedSearchProducts(
     normalizeSearchProductsInput({
       selectedCategory,
+      selectedCategories,
       selectedCategoryId,
       selectedBrand,
+      selectedBrands,
       searchTerm,
       minPrice,
       maxPrice,
       limit,
+      sortBy,
     })
   );
 };

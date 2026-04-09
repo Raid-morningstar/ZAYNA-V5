@@ -43,7 +43,7 @@ export default function SectionRenderer({ section }: SectionRendererProps) {
   }
 
   if (section.type === "links_group") {
-    return <LinksGroupRenderer section={section} />;
+    return null;
   }
 
   if (section.type === "social_links") {

@@ -95,17 +95,17 @@ export default async function AdminHomepagePage({
         description="Annonce, hero slider, blocs confiance, liens navigation/footer et contenu newsletter: toute la homepage peut etre geree sans toucher au code."
         aside={
           <div className="space-y-3">
-            <div className="rounded-2xl bg-black/15 p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/55">Slides hero</p>
-              <p className="mt-2 text-3xl font-semibold">{data.metrics.heroSlides}</p>
+            <div className="rounded-2xl border border-slate-200 bg-slate-100 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Slides hero</p>
+              <p className="mt-2 text-3xl font-semibold text-slate-900">{data.metrics.heroSlides}</p>
             </div>
-            <div className="rounded-2xl bg-black/15 p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/55">Blocs confiance</p>
-              <p className="mt-2 text-3xl font-semibold">{data.metrics.trustItems}</p>
+            <div className="rounded-2xl border border-slate-200 bg-slate-100 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Blocs confiance</p>
+              <p className="mt-2 text-3xl font-semibold text-slate-900">{data.metrics.trustItems}</p>
             </div>
-            <div className="rounded-2xl bg-black/15 p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/55">Abonnes newsletter</p>
-              <p className="mt-2 text-3xl font-semibold">{data.metrics.newsletterSubscribers}</p>
+            <div className="rounded-2xl border border-slate-200 bg-slate-100 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Abonnes newsletter</p>
+              <p className="mt-2 text-3xl font-semibold text-slate-900">{data.metrics.newsletterSubscribers}</p>
             </div>
           </div>
         }
@@ -976,174 +976,6 @@ export default async function AdminHomepagePage({
               <EmptyState
                 title="Aucun bloc confiance"
                 description="Ajoutez vos premiers arguments de reassurance."
-              />
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-        <div className={cn(adminSurfaceClassName, "p-6")}>
-          <Badge className="bg-shop_light_green/15 text-shop_btn_dark_green hover:bg-shop_light_green/15">
-            Nouveau lien
-          </Badge>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-            Ajouter un lien storefront
-          </h2>
-          <form action={createSiteLinkAction} className="mt-6 space-y-5">
-            <Field label="Groupe" htmlFor="site-link-group">
-              <select
-                id="site-link-group"
-                name="group"
-                className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900"
-                defaultValue="header"
-              >
-                {linkGroups.map((group) => (
-                  <option key={group.value} value={group.value}>
-                    {group.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Titre" htmlFor="site-link-title">
-              <Input
-                id="site-link-title"
-                name="title"
-                className="h-11 rounded-2xl border-slate-200 bg-slate-50"
-              />
-            </Field>
-            <Field label="Lien" htmlFor="site-link-href">
-              <Input
-                id="site-link-href"
-                name="href"
-                placeholder="/shop"
-                className="h-11 rounded-2xl border-slate-200 bg-slate-50"
-              />
-            </Field>
-            <Field label="Ordre" htmlFor="site-link-sort-order">
-              <Input
-                id="site-link-sort-order"
-                name="sortOrder"
-                type="number"
-                min={0}
-                max={200}
-                defaultValue={0}
-                className="h-11 rounded-2xl border-slate-200 bg-slate-50"
-              />
-            </Field>
-            <label className="flex items-center gap-3 rounded-[24px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                name="openInNewTab"
-                className="h-4 w-4 rounded border-slate-300 text-shop_btn_dark_green"
-              />
-              Ouvrir dans un nouvel onglet
-            </label>
-            <AdminSubmitButton
-              pendingLabel="Ajout..."
-              className="h-11 w-full rounded-2xl bg-shop_btn_dark_green text-white hover:bg-shop_dark_green"
-            >
-              Ajouter le lien
-            </AdminSubmitButton>
-          </form>
-        </div>
-
-        <div className={cn(adminSurfaceClassName, "p-6")}>
-          <SectionHeading
-            badge="Navigation"
-            title="Liens header et footer"
-            description="Chaque lien est relie a un groupe: header, footer rapide ou footer legal."
-          />
-          <div className="mt-6 space-y-4">
-            {data.links.length ? (
-              data.links.map((link) => (
-                <div key={link.id} className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <h4 className="text-lg font-semibold text-slate-950">{link.title}</h4>
-                      <p className="text-sm text-slate-600">{link.href}</p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        Groupe: {link.group} · Ordre: {link.sortOrder}
-                      </p>
-                    </div>
-                    <form action={deleteSiteLinkAction}>
-                      <input type="hidden" name="id" value={link.id} />
-                      <AdminDeleteButton confirmMessage={`Supprimer le lien "${link.title}" ?`} />
-                    </form>
-                  </div>
-
-                  <details className="mt-5 rounded-[24px] border border-slate-200 bg-white">
-                    <summary className="cursor-pointer list-none px-5 py-4 text-sm font-semibold text-shop_btn_dark_green transition-colors hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
-                      Modifier ce lien
-                    </summary>
-                    <div className="border-t border-slate-200 p-5">
-                      <form action={updateSiteLinkAction} className="space-y-5">
-                        <input type="hidden" name="id" value={link.id} />
-                        <Field label="Groupe" htmlFor={`site-link-group-${link.id}`}>
-                          <select
-                            id={`site-link-group-${link.id}`}
-                            name="group"
-                            defaultValue={link.group}
-                            className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900"
-                          >
-                            {linkGroups.map((group) => (
-                              <option key={group.value} value={group.value}>
-                                {group.label}
-                              </option>
-                            ))}
-                          </select>
-                        </Field>
-                        <Field label="Titre" htmlFor={`site-link-title-${link.id}`}>
-                          <Input
-                            id={`site-link-title-${link.id}`}
-                            name="title"
-                            defaultValue={link.title}
-                            className="h-11 rounded-2xl border-slate-200 bg-slate-50"
-                          />
-                        </Field>
-                        <Field label="Lien" htmlFor={`site-link-href-${link.id}`}>
-                          <Input
-                            id={`site-link-href-${link.id}`}
-                            name="href"
-                            defaultValue={link.href}
-                            className="h-11 rounded-2xl border-slate-200 bg-slate-50"
-                          />
-                        </Field>
-                        <Field label="Ordre" htmlFor={`site-link-sort-order-${link.id}`}>
-                          <Input
-                            id={`site-link-sort-order-${link.id}`}
-                            name="sortOrder"
-                            type="number"
-                            min={0}
-                            max={200}
-                            defaultValue={link.sortOrder}
-                            className="h-11 rounded-2xl border-slate-200 bg-slate-50"
-                          />
-                        </Field>
-                        <label className="flex items-center gap-3 rounded-[24px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700">
-                          <input
-                            type="checkbox"
-                            name="openInNewTab"
-                            defaultChecked={link.openInNewTab}
-                            className="h-4 w-4 rounded border-slate-300 text-shop_btn_dark_green"
-                          />
-                          Ouvrir dans un nouvel onglet
-                        </label>
-                        <AdminSubmitButton
-                          pendingLabel="Enregistrement..."
-                          className="h-11 rounded-2xl bg-shop_btn_dark_green px-6 text-white hover:bg-shop_dark_green"
-                        >
-                          Enregistrer
-                        </AdminSubmitButton>
-                      </form>
-                    </div>
-                  </details>
-                </div>
-              ))
-            ) : (
-              <EmptyState
-                title="Aucun lien configure"
-                description="Ajoutez vos liens header/footer pour piloter la navigation."
               />
             )}
           </div>

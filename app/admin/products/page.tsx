@@ -64,24 +64,24 @@ export default async function AdminProductsPage({
         description="Les produits sont maintenant geres sur une page dediee. Vous chargez uniquement le catalogue, les marques et les categories utiles a ce travail, avec une interface plus stable sur desktop et mobile."
         aside={
           <>
-            <p className="text-xs uppercase tracking-[0.2em] text-white/60">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
               A retenir
             </p>
             <div className="mt-4 space-y-3">
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Produits affiches
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.products.length}</p>
               </div>
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Produits mis en avant
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.featuredProducts}</p>
               </div>
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Stock faible
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.lowStockProducts}</p>

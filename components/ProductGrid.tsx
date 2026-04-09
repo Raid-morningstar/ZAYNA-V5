@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import ProductCard from "./ProductCard";
 import NoProductAvailable from "./NoProductAvailable";
 import { Loader2 } from "lucide-react";
@@ -29,7 +29,7 @@ const ProductGrid = ({
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const tabCategories = getHomeTabCategories(categories);
+  const tabCategories = useMemo(() => getHomeTabCategories(categories), [categories]);
   const fallbackCategoryId = tabCategories[0]?._id || "";
 
   const [selectedCategoryId, setSelectedCategoryId] = useState(
@@ -108,7 +108,7 @@ const ProductGrid = ({
         }
       } catch (error) {
         if (!cancelled) {
-          console.log("Product fetching Error", error);
+          console.error("Product fetching Error", error);
           setProducts([]);
         }
       } finally {
@@ -162,7 +162,7 @@ const ProductGrid = ({
             cacheRef.current.set(categoryId, data || []);
           }
         } catch (error) {
-          console.log("Product prefetch Error", error);
+          console.error("Product prefetch Error", error);
         }
       }
     };
@@ -197,20 +197,31 @@ const ProductGrid = ({
   const showInitialLoader = loading && !products.length;
   const showInlineLoading = (loading || isPending) && products.length > 0;
 
+  const handleCategorySelect = useCallback(
+    (categoryId: string) => {
+      startTransition(() => {
+        setSelectedCategoryId(categoryId);
+      });
+    },
+    [startTransition]
+  );
+
+  const tabCategoryItems = useMemo(
+    () =>
+      tabCategories.map((category) => ({
+        _id: category._id,
+        title: category.title || "",
+        slug: category.slug.current,
+      })),
+    [tabCategories]
+  );
+
   return (
     <Container id="categories" className="flex flex-col lg:px-0 my-10 scroll-mt-28">
       <HomeTabbar
-        categories={tabCategories.map((category) => ({
-          _id: category._id,
-          title: category.title || "",
-          slug: category.slug.current,
-        }))}
+        categories={tabCategoryItems}
         selectedCategoryId={selectedCategoryId}
-        onCategorySelect={(categoryId) => {
-          startTransition(() => {
-            setSelectedCategoryId(categoryId);
-          });
-        }}
+        onCategorySelect={handleCategorySelect}
       />
       {showInitialLoader ? (
         <div className="flex flex-col items-center justify-center py-10 min-h-80 space-y-4 text-center bg-gray-100 rounded-lg w-full mt-10">

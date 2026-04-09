@@ -55,24 +55,24 @@ export default async function AdminBrandsPage({
         description="Les marques ont maintenant leur propre page. Vous pouvez enrichir le catalogue avec une presentation propre des laboratoires et partenaires sans ralentir la gestion des autres contenus."
         aside={
           <>
-            <p className="text-xs uppercase tracking-[0.2em] text-white/60">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
               En bref
             </p>
             <div className="mt-4 space-y-3">
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Marques
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.totalBrands}</p>
               </div>
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Marques actives
                 </p>
                 <p className="mt-2 text-3xl font-semibold">{data.metrics.activeBrands}</p>
               </div>
-              <div className="rounded-2xl bg-black/15 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">
+              <div className="rounded-2xl bg-slate-100 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
                   Produits sans marque
                 </p>
                 <p className="mt-2 text-3xl font-semibold">

@@ -9,7 +9,7 @@ import Title from "./Title";
 import ProductSideMenu from "./ProductSideMenu";
 import AddToCartButton from "./AddToCartButton";
 
-const ProductCard = ({ product }: { product: Product }) => {
+const ProductCard = React.memo(function ProductCard({ product }: { product: Product }) {
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-[12px] border border-shop_light_green/20 bg-white shadow-[0_12px_24px_-22px_rgba(22,46,110,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:border-shop_light_green/45">
       <div className="relative overflow-hidden border-b border-shop_light_green/15 bg-shop_light_bg/60">
@@ -68,11 +68,13 @@ const ProductCard = ({ product }: { product: Product }) => {
           className="text-base"
         />
 
+        {/* Stock indicator — décommenter pour réafficher côté client
         <p
           className={`text-[11px] font-medium ${product?.stock === 0 ? "text-red-600" : "text-shop_dark_green/80"}`}
         >
           {(product?.stock as number) > 0 ? `${product?.stock} en stock` : "Indisponible"}
         </p>
+        */}
 
         <div className="mt-auto pt-1">
           <AddToCartButton
@@ -83,6 +85,6 @@ const ProductCard = ({ product }: { product: Product }) => {
       </div>
     </article>
   );
-};
+});
 
 export default ProductCard;

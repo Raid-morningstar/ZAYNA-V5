@@ -1,16 +1,17 @@
 "use client";
 import { BRANDS_QUERYResult, Category, Product } from "@/types";
-import React, { startTransition, useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Container from "./Container";
 import Title from "./Title";
 import CategoryList from "./shop/CategoryList";
-import { useRouter } from "next/navigation";
 import BrandList from "./shop/BrandList";
 import PriceList from "./shop/PriceList";
+import SortSelect from "./shop/SortSelect";
 import { Loader2 } from "lucide-react";
 import NoProductAvailable from "./NoProductAvailable";
 import ProductCard from "./ProductCard";
 import { fetchWithRetry } from "@/lib/fetchWithRetry";
+import type { SortOption } from "@/lib/queries";
 
 interface Props {
   categories: Category[];
@@ -23,33 +24,29 @@ interface Props {
 }
 
 const getShopCacheKey = ({
-  selectedCategory,
-  selectedBrand,
+  selectedCategories,
+  selectedBrands,
   selectedPrice,
   searchTerm,
+  sortBy,
 }: {
-  selectedCategory?: string | null;
-  selectedBrand?: string | null;
+  selectedCategories: string[];
+  selectedBrands: string[];
   selectedPrice?: string | null;
   searchTerm?: string;
+  sortBy?: SortOption;
 }) =>
   JSON.stringify({
-    selectedCategory: selectedCategory || "",
-    selectedBrand: selectedBrand || "",
+    selectedCategories: [...selectedCategories].sort(),
+    selectedBrands: [...selectedBrands].sort(),
     selectedPrice: selectedPrice || "",
     searchTerm: searchTerm || "",
+    sortBy: sortBy || "relevance",
   });
 
 const parsePriceRange = (selectedPrice: string | null) => {
-  if (!selectedPrice) {
-    return {
-      minPrice: null,
-      maxPrice: null,
-    };
-  }
-
+  if (!selectedPrice) return { minPrice: null, maxPrice: null };
   const [min, max] = selectedPrice.split("-").map(Number);
-
   return {
     minPrice: Number.isFinite(min) ? min : null,
     maxPrice: Number.isFinite(max) ? max : null,
@@ -65,46 +62,34 @@ const Shop = ({
   initialSelectedPrice = null,
   initialSearchTerm = "",
 }: Props) => {
-  const router = useRouter();
   const [isFilterPending, startFilterTransition] = useTransition();
   const searchTerm = initialSearchTerm.trim();
+
+  const initCategories = initialSelectedCategory ? [initialSelectedCategory] : [];
+  const initBrands = initialSelectedBrand ? [initialSelectedBrand] : [];
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initCategories);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(initBrands);
+  const [selectedPrice, setSelectedPrice] = useState<string | null>(initialSelectedPrice);
+  const [sortBy, setSortBy] = useState<SortOption>("relevance");
+
   const initialCacheKey = getShopCacheKey({
-    selectedCategory: initialSelectedCategory,
-    selectedBrand: initialSelectedBrand,
+    selectedCategories: initCategories,
+    selectedBrands: initBrands,
     selectedPrice: initialSelectedPrice,
     searchTerm,
+    sortBy: "relevance",
   });
   const cacheRef = useRef(new Map<string, Product[]>([[initialCacheKey, initialProducts]]));
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
-    initialSelectedCategory
-  );
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(
-    initialSelectedBrand
-  );
-  const [selectedPrice, setSelectedPrice] = useState<string | null>(
-    initialSelectedPrice
-  );
   const requestIdRef = useRef(0);
-  const cacheKey = getShopCacheKey({
-    selectedCategory,
-    selectedBrand,
-    selectedPrice,
-    searchTerm,
-  });
 
-  useEffect(() => {
-    setSelectedCategory(initialSelectedCategory);
-  }, [initialSelectedCategory]);
+  const cacheKey = getShopCacheKey({ selectedCategories, selectedBrands, selectedPrice, searchTerm, sortBy });
 
-  useEffect(() => {
-    setSelectedBrand(initialSelectedBrand);
-  }, [initialSelectedBrand]);
-
-  useEffect(() => {
-    setSelectedPrice(initialSelectedPrice);
-  }, [initialSelectedPrice]);
+  useEffect(() => { setSelectedCategories(initCategories); }, [initialSelectedCategory]);
+  useEffect(() => { setSelectedBrands(initBrands); }, [initialSelectedBrand]);
+  useEffect(() => { setSelectedPrice(initialSelectedPrice); }, [initialSelectedPrice]);
 
   useEffect(() => {
     cacheRef.current.set(initialCacheKey, initialProducts);
@@ -113,30 +98,24 @@ const Shop = ({
   }, [initialCacheKey, initialProducts]);
 
   const fetchProducts = useCallback(async () => {
-    const cachedProducts = cacheRef.current.get(cacheKey);
-    if (cachedProducts) {
-      setProducts(cachedProducts);
+    const cached = cacheRef.current.get(cacheKey);
+    if (cached) {
+      setProducts(cached);
       setLoading(false);
       return;
     }
 
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
-
     setLoading(true);
+
     try {
       const { minPrice, maxPrice } = parsePriceRange(selectedPrice);
-
       const params = new URLSearchParams();
-      if (selectedCategory) {
-        params.set("category", selectedCategory);
-      }
-      if (selectedBrand) {
-        params.set("brand", selectedBrand);
-      }
-      if (searchTerm) {
-        params.set("q", searchTerm);
-      }
+      if (selectedCategories.length) params.set("categories", selectedCategories.join(","));
+      if (selectedBrands.length) params.set("brands", selectedBrands.join(","));
+      if (searchTerm) params.set("q", searchTerm);
+      if (sortBy && sortBy !== "relevance") params.set("sort", sortBy);
       if (minPrice !== null && maxPrice !== null) {
         params.set("minPrice", String(minPrice));
         params.set("maxPrice", String(maxPrice));
@@ -145,125 +124,163 @@ const Shop = ({
       const data = await fetchWithRetry(
         async () => {
           const res = await fetch(`/api/products/search?${params.toString()}`);
-
-          if (!res.ok) {
-            throw new Error(`Failed to fetch products: ${res.status}`);
-          }
-
+          if (!res.ok) throw new Error(`Failed: ${res.status}`);
           return (await res.json()) as Product[];
         },
         { retries: 1, retryDelayMs: 400 }
       );
+
       if (requestIdRef.current === requestId) {
         cacheRef.current.set(cacheKey, data || []);
         setProducts(data || []);
       }
     } catch (error) {
       if (requestIdRef.current === requestId) {
-        console.log("Shop product fetching Error", error);
+        console.error("Shop fetch error", error);
         setProducts([]);
       }
     } finally {
-      if (requestIdRef.current === requestId) {
-        setLoading(false);
-      }
+      if (requestIdRef.current === requestId) setLoading(false);
     }
-  }, [cacheKey, searchTerm, selectedBrand, selectedCategory, selectedPrice]);
+  }, [cacheKey, searchTerm, selectedBrands, selectedCategories, selectedPrice, sortBy]);
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+  const toggleCategory = (slug: string) => {
+    startFilterTransition(() => {
+      setSelectedCategories((prev) =>
+        prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
+      );
+    });
+  };
+
+  const toggleBrand = (slug: string) => {
+    startFilterTransition(() => {
+      setSelectedBrands((prev) =>
+        prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
+      );
+    });
+  };
+
+  const hasActiveFilters =
+    selectedCategories.length > 0 ||
+    selectedBrands.length > 0 ||
+    selectedPrice !== null ||
+    !!searchTerm;
 
   const showInitialLoader = loading && !products.length;
   const showInlineLoading = (loading || isFilterPending) && products.length > 0;
 
-  const handleCategoryChange = (value: string | null) => {
-    startFilterTransition(() => {
-      setSelectedCategory(value);
-    });
-  };
-
-  const handleBrandChange = (value: string | null) => {
-    startFilterTransition(() => {
-      setSelectedBrand(value);
-    });
-  };
-
-  const handlePriceChange = (value: string | null) => {
-    startFilterTransition(() => {
-      setSelectedPrice(value);
-    });
-  };
+  const activeBadges = [
+    ...selectedCategories.map((s) => ({
+      label: categories.find((c) => c.slug?.current === s)?.title || s,
+      onRemove: () => startFilterTransition(() => setSelectedCategories((p) => p.filter((x) => x !== s))),
+    })),
+    ...selectedBrands.map((s) => ({
+      label: brands.find((b) => b.slug?.current === s)?.title || s,
+      onRemove: () => startFilterTransition(() => setSelectedBrands((p) => p.filter((x) => x !== s))),
+    })),
+  ];
 
   return (
-    <div className="border-t">
+    <div className="border-t border-shop_light_green/15">
       <Container className="mt-5">
-        <div className="sticky top-0 z-10 mb-5">
-          <div className="flex items-center justify-between">
-            <Title className="text-lg uppercase tracking-wide">
-              Trouvez les produits selon vos besoins
-            </Title>
-            {(selectedCategory !== null ||
-              selectedBrand !== null ||
-              selectedPrice !== null ||
-              !!searchTerm) && (
-              <button
-                onClick={() => {
-                  startTransition(() => {
-                    setSelectedCategory(null);
-                    setSelectedBrand(null);
-                    setSelectedPrice(null);
-                  });
-                  if (searchTerm) {
-                    router.push("/shop");
-                  }
-                }}
-                className="text-shop_dark_green underline text-sm mt-2 font-medium hover:text-darkRed hoverEffect"
-              >
-                Reinitialiser les filtres
-              </button>
-            )}
-          </div>
+        {/* Header row */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <Title className="text-lg uppercase tracking-wide">
+            Trouvez les produits selon vos besoins
+          </Title>
+          {hasActiveFilters && (
+            <button
+              onClick={() => {
+                startTransition(() => {
+                  setSelectedCategories([]);
+                  setSelectedBrands([]);
+                  setSelectedPrice(null);
+                });
+              }}
+              className="text-sm font-medium text-shop_dark_green underline underline-offset-2 hover:text-shop_btn_dark_green"
+            >
+              Reinitialiser les filtres
+            </button>
+          )}
         </div>
-        <div className="flex flex-col md:flex-row gap-5 border-t border-t-shop_dark_green/50">
-          <div className="md:sticky md:top-20 md:self-start md:h-[calc(100vh-160px)] md:overflow-y-auto md:min-w-64 pb-5 md:border-r border-r-shop_btn_dark_green/50 scrollbar-hide">
+
+        {/* Active filter badges */}
+        {activeBadges.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {activeBadges.map((badge) => (
+              <span
+                key={badge.label}
+                className="inline-flex items-center gap-1.5 rounded-full border border-shop_light_green/30 bg-shop_btn_dark_green/8 px-3 py-1 text-xs font-semibold text-shop_btn_dark_green"
+              >
+                {badge.label}
+                <button
+                  onClick={badge.onRemove}
+                  className="ml-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-shop_btn_dark_green/15 hover:bg-shop_btn_dark_green/30"
+                >
+                  <svg viewBox="0 0 8 8" className="h-2 w-2 stroke-shop_btn_dark_green stroke-2">
+                    <line x1="1" y1="1" x2="7" y2="7" /><line x1="7" y1="1" x2="1" y2="7" />
+                  </svg>
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-5 border-t border-shop_light_green/15 md:flex-row">
+          {/* Sidebar */}
+          <aside className="md:sticky md:top-20 md:self-start md:h-[calc(100vh-160px)] md:overflow-y-auto md:min-w-60 pb-5 md:border-r border-shop_light_green/20 scrollbar-hide">
             <CategoryList
               categories={categories}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={handleCategoryChange}
+              selectedCategories={selectedCategories}
+              onToggle={toggleCategory}
+              onReset={() => startFilterTransition(() => setSelectedCategories([]))}
             />
             <BrandList
               brands={brands}
-              setSelectedBrand={handleBrandChange}
-              selectedBrand={selectedBrand}
+              selectedBrands={selectedBrands}
+              onToggle={toggleBrand}
+              onReset={() => startFilterTransition(() => setSelectedBrands([]))}
             />
             <PriceList
-              setSelectedPrice={handlePriceChange}
+              setSelectedPrice={(v) => startFilterTransition(() => setSelectedPrice(v))}
               selectedPrice={selectedPrice}
             />
-          </div>
+          </aside>
+
+          {/* Products */}
           <div className="flex-1 pt-5">
+            <div className="mb-3">
+              <SortSelect
+                value={sortBy}
+                onChange={(v) => startFilterTransition(() => setSortBy(v))}
+                total={products.length}
+              />
+            </div>
             <div className="relative h-[calc(100vh-160px)] overflow-y-auto pr-2 scrollbar-hide">
               {showInitialLoader ? (
-                <div className="p-20 flex flex-col gap-2 items-center justify-center bg-white">
-                  <Loader2 className="w-10 h-10 text-shop_dark_green animate-spin" />
-                  <p className="font-semibold tracking-wide text-base">
-                    Chargement des produits . . .
+                <div className="flex flex-col items-center justify-center gap-3 p-20">
+                  <Loader2 className="h-10 w-10 animate-spin text-shop_light_green" />
+                  <p className="font-semibold tracking-wide text-shop_dark_green">
+                    Chargement des produits...
                   </p>
                 </div>
-              ) : products?.length > 0 ? (
+              ) : products.length > 0 ? (
                 <>
-                  {showInlineLoading ? (
+                  {showInlineLoading && (
                     <div className="sticky top-0 z-10 mb-3 flex justify-end">
                       <div className="inline-flex items-center gap-2 rounded-full border border-shop_light_green/30 bg-white/90 px-3 py-1.5 text-xs font-medium text-shop_dark_green shadow-sm">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        Mise a jour des produits...
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-shop_light_green" />
+                        Mise a jour...
                       </div>
                     </div>
-                  ) : null}
-                  <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 transition-opacity ${showInlineLoading ? "opacity-70" : "opacity-100"}`}>
-                    {products?.map((product) => (
-                      <ProductCard key={product?._id} product={product} />
+                  )}
+                  <div
+                    className={`grid grid-cols-2 gap-2.5 transition-opacity md:grid-cols-3 lg:grid-cols-4 ${showInlineLoading ? "opacity-60" : "opacity-100"}`}
+                  >
+                    {products.map((product) => (
+                      <ProductCard key={product._id} product={product} />
                     ))}
                   </div>
                 </>
@@ -279,4 +296,3 @@ const Shop = ({
 };
 
 export default Shop;
-
