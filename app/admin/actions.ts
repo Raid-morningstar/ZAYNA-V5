@@ -340,12 +340,11 @@ const withAction = async (
 };
 
 const refreshStorefront = (paths: Array<string | null | undefined> = []) => {
-  const basePaths = ["/admin", "/", "/shop", "/deal", "/orders"];
-  const revalidationTargets = [...basePaths, ...paths.filter(Boolean)];
-
   revalidateTag(getAdminDataTag(), "max");
-
-  for (const path of new Set(revalidationTargets)) {
+  // "layout" type invalidates the layout and ALL nested pages under it
+  revalidatePath("/admin", "layout");
+  revalidatePath("/", "layout");
+  for (const path of new Set(paths.filter(Boolean))) {
     revalidatePath(path as string);
   }
 };
@@ -2650,12 +2649,13 @@ export async function updateOrderStatusAction(formData: FormData) {
     }
 
     const order = await prisma.order.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
       select: {
+        status:        true,
         paymentMethod: true,
         paymentStatus: true,
+        totalPrice:    true,
+        userId:        true,
       },
     });
 
@@ -2667,25 +2667,143 @@ export async function updateOrderStatusAction(formData: FormData) {
       nextStage as (typeof adminOrderStageOptions)[number]["value"]
     );
 
+    const isTransitionToDelivered =
+      status === "delivered" && order.status !== "delivered";
+
     await prisma.order.update({
-      where: {
-        id,
-      },
+      where: { id },
       data: {
         status,
-        ...(status === "delivered" &&
+        // COD : mark payment as paid when delivered
+        ...(isTransitionToDelivered &&
         order.paymentMethod === "cod" &&
         order.paymentStatus !== "paid"
-          ? {
-              paymentStatus: "paid",
-            }
+          ? { paymentStatus: "paid" }
           : {}),
       },
     });
+
+    // ── Award loyalty points on delivery (all payment methods) ──
+    // Triggered only once : when transitioning TO "delivered"
+    if (isTransitionToDelivered && order.userId) {
+      const { calculateEarnedPoints, getTierFromPoints } = await import("@/lib/loyalty");
+      const earned = calculateEarnedPoints(Number(order.totalPrice));
+      if (earned > 0) {
+        const updated = await prisma.user.update({
+          where: { id: order.userId },
+          data:  { loyaltyPoints: { increment: earned } },
+          select: { loyaltyPoints: true },
+        });
+        await prisma.user.update({
+          where: { id: order.userId },
+          data:  { loyaltyTier: getTierFromPoints(updated.loyaltyPoints) },
+          select: { id: true },
+        });
+      }
+    }
 
     refreshStorefront(["/orders"]);
     adminRedirect("orders", {
       status: "Statut de commande mis a jour.",
     });
   });
+}
+
+// Silent variant: revalidates but does NOT redirect — used by the order dialog
+// so the client can handle refresh/close in-place without a full navigation.
+export async function updateOrderStatusSilentAction(
+  _prev: { success: boolean; error?: string } | null,
+  formData: FormData
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await requireAdmin();
+
+    const id = requireId(readText(formData, "id"), "Commande introuvable.");
+    const nextStage = readText(formData, "status");
+    const allowedStages = new Set(adminOrderStageOptions.map((option) => option.value));
+
+    if (!allowedStages.has(nextStage as (typeof adminOrderStageOptions)[number]["value"])) {
+      return { success: false, error: "Le statut choisi n'est pas valide." };
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id },
+      select: {
+        status:        true,
+        paymentMethod: true,
+        paymentStatus: true,
+        totalPrice:    true,
+        userId:        true,
+      },
+    });
+
+    if (!order) {
+      return { success: false, error: "Cette commande n'existe plus." };
+    }
+
+    const status = adminStageToOrderStatus(
+      nextStage as (typeof adminOrderStageOptions)[number]["value"]
+    );
+
+    const isTransitionToDelivered = status === "delivered" && order.status !== "delivered";
+
+    await prisma.order.update({
+      where: { id },
+      data: {
+        status,
+        ...(isTransitionToDelivered &&
+        order.paymentMethod === "cod" &&
+        order.paymentStatus !== "paid"
+          ? { paymentStatus: "paid" }
+          : {}),
+      },
+    });
+
+    if (isTransitionToDelivered && order.userId) {
+      const { calculateEarnedPoints, getTierFromPoints } = await import("@/lib/loyalty");
+      const earned = calculateEarnedPoints(Number(order.totalPrice));
+      if (earned > 0) {
+        const updated = await prisma.user.update({
+          where: { id: order.userId },
+          data:  { loyaltyPoints: { increment: earned } },
+          select: { loyaltyPoints: true },
+        });
+        await prisma.user.update({
+          where: { id: order.userId },
+          data:  { loyaltyTier: getTierFromPoints(updated.loyaltyPoints) },
+          select: { id: true },
+        });
+      }
+    }
+
+    refreshStorefront(["/orders"]);
+    return { success: true };
+  } catch (error) {
+    if (isRedirectSignal(error)) throw error;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erreur inconnue.",
+    };
+  }
+}
+
+export async function resetAllDataAction() {
+  await requireAdmin();
+
+  await prisma.$transaction(async (tx) => {
+    // Delete all order items first (foreign key constraint)
+    await tx.orderItem.deleteMany({});
+    // Delete all orders
+    await tx.order.deleteMany({});
+    // Reset loyalty points and tier for all users
+    await tx.user.updateMany({
+      data: {
+        loyaltyPoints: 0,
+        loyaltyTier:   "bronze",
+      },
+    });
+  });
+
+  revalidateTag(getAdminDataTag(), "max");
+  revalidatePath("/admin", "layout");
 }

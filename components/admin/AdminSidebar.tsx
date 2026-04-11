@@ -11,6 +11,7 @@ import {
   ShoppingBag,
   Store,
   Tag,
+  Users,
   X,
 } from "lucide-react";
 
@@ -101,6 +102,15 @@ export const buildAdminSidebarItems = (metrics: {
     icon: Percent,
     badge: metrics.expiringPromoCodes || undefined,
     badgeTone: "bg-rose-400/15 text-rose-100 ring-rose-300/30",
+  },
+  {
+    id: "clients",
+    label: "Clients",
+    description: "Profils, fidélité, points et historique commandes",
+    href: "/admin/clients",
+    actionHref: "/admin/clients",
+    actionLabel: "Voir les clients",
+    icon: Users,
   },
 ] satisfies AdminSidebarItem[];
 

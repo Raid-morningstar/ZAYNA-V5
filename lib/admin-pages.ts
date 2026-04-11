@@ -45,6 +45,7 @@ const buildRevenueSeries = (
   orders: Array<{
     orderDate: Date;
     paymentStatus: PaymentStatus;
+    status: OrderStatus;
     totalPrice: Prisma.Decimal | number;
   }>
 ) => {
@@ -73,7 +74,7 @@ const buildRevenueSeries = (
 
     bucket.orders += 1;
 
-    if (order.paymentStatus === "paid") {
+    if (order.status === "delivered" && order.paymentStatus === "paid") {
       bucket.revenue += decimalToNumber(order.totalPrice);
     }
   });
@@ -430,6 +431,7 @@ async function fetchAdminOverviewData(): Promise<AdminOverviewData> {
     prisma.user.count(),
     prisma.order.aggregate({
       where: {
+        status:        "delivered",
         paymentStatus: "paid",
       },
       _sum: {
@@ -537,6 +539,7 @@ async function fetchAdminOverviewData(): Promise<AdminOverviewData> {
         orderDate: true,
         paymentStatus: true,
         totalPrice: true,
+        status: true,
       },
     }),
     prisma.orderItem.groupBy({

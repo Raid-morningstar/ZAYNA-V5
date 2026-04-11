@@ -430,6 +430,7 @@ const fetchAdminDashboardData = async (): Promise<AdminDashboardData> => {
     prisma.user.count(),
     prisma.order.aggregate({
       where: {
+        status:        "delivered",
         paymentStatus: "paid",
       },
       _sum: {
@@ -579,6 +580,7 @@ const fetchAdminDashboardData = async (): Promise<AdminDashboardData> => {
           },
           select: {
             orderDate: true,
+            status: true,
             paymentStatus: true,
             totalPrice: true,
           },
@@ -703,7 +705,9 @@ const fetchAdminDashboardData = async (): Promise<AdminDashboardData> => {
       count: item._count.paymentStatus,
     })),
     customers: customers.map((customer) => {
-      const paidOrders = customer.orders.filter((order) => order.paymentStatus === "paid");
+      const paidOrders = customer.orders.filter(
+        (order) => order.status === "delivered" && order.paymentStatus === "paid"
+      );
       const totalSpent = paidOrders.reduce(
         (sum, order) => sum + decimalToNumber(order.totalPrice),
         0

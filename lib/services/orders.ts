@@ -407,11 +407,8 @@ export async function createOrderFromStripeSession(
 
     if (promoCode) {
       const promo = await tx.promoCode.findUnique({
-        where: {
-          code: promoCode,
-        },
+        where: { code: promoCode },
       });
-
       if (promo) {
         await incrementPromoUsage(tx, promo.id);
       }

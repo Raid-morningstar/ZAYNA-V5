@@ -25,6 +25,7 @@ import {
   formatTier,
 } from "@/components/admin/AdminPagePrimitives";
 import AdminRevenueChart from "@/components/admin/dashboard/AdminRevenueChart";
+import AdminResetDataButton from "@/components/admin/dashboard/AdminResetDataButton";
 import AdminStageRing from "@/components/admin/dashboard/AdminStageRing";
 import AdminTopProductsList from "@/components/admin/dashboard/AdminTopProductsList";
 import { Badge } from "@/components/ui/badge";
@@ -616,6 +617,10 @@ export default async function AdminPage({
                   </Link>
                 );
               })}
+            </div>
+
+            <div className="mt-4">
+              <AdminResetDataButton />
             </div>
           </div>
         </div>

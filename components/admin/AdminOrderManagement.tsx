@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   ArrowUpRight,
@@ -11,8 +12,7 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { updateOrderStatusAction } from "@/app/admin/actions";
-import AdminSubmitButton from "@/components/admin/AdminSubmitButton";
+import { updateOrderStatusSilentAction } from "@/app/admin/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -162,11 +162,24 @@ const AdminOrderManagement = ({
   stageOptions,
   paymentMethodLabels,
 }: AdminOrderManagementProps) => {
+  const router = useRouter();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<OrderViewMode>(
     orders.some(isActionableOrder) ? "priority" : "all"
   );
   const [draftStatus, setDraftStatus] = useState("");
+
+  const [actionState, formAction, isPending] = useActionState(
+    async (prev: { success: boolean; error?: string } | null, formData: FormData) => {
+      const result = await updateOrderStatusSilentAction(prev, formData);
+      if (result.success) {
+        closeOrder();
+        router.refresh();
+      }
+      return result;
+    },
+    null
+  );
 
   const priorityOrders = useMemo(() => orders.filter(isActionableOrder), [orders]);
   const selectedOrder = useMemo(
@@ -600,7 +613,7 @@ const AdminOrderManagement = ({
                 </div>
 
                 <form
-                  action={updateOrderStatusAction}
+                  action={formAction}
                   className="flex h-full flex-col rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_22px_48px_-38px_rgba(15,23,42,0.24)]"
                 >
                   <input type="hidden" name="id" value={selectedOrder.id} />
@@ -676,21 +689,28 @@ const AdminOrderManagement = ({
                   </div>
 
                   <div className="mt-auto border-t border-slate-200 pt-5">
+                    {actionState && !actionState.success && actionState.error && (
+                      <p className="mb-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-semibold text-rose-700">
+                        {actionState.error}
+                      </p>
+                    )}
                     <div className="flex flex-col gap-3 sm:flex-row">
                       <Button
                         type="button"
                         variant="outline"
                         onClick={closeOrder}
+                        disabled={isPending}
                         className="h-12 flex-1 rounded-2xl"
                       >
                         Fermer
                       </Button>
-                      <AdminSubmitButton
-                        pendingLabel="Mise a jour..."
-                        className="h-12 flex-1 rounded-2xl bg-shop_btn_dark_green text-white hover:bg-shop_dark_green"
+                      <button
+                        type="submit"
+                        disabled={isPending}
+                        className="h-12 flex-1 rounded-2xl bg-shop_btn_dark_green text-sm font-semibold text-white transition hover:bg-shop_btn_dark_green/90 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        Enregistrer le statut
-                      </AdminSubmitButton>
+                        {isPending ? "Mise a jour..." : "Enregistrer le statut"}
+                      </button>
                     </div>
                     <p className="mt-3 text-xs leading-5 text-slate-500">
                       La file prioritaire sera mise a jour apres validation.
