@@ -414,3 +414,25 @@ export const getMyOrdersCount = async (userId: string) =>
       clerkUserId: userId,
     },
   });
+
+export const getMyLoyaltyData = async (clerkUserId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { clerkUserId },
+    select: {
+      loyaltyPoints:     true,
+      loyaltyTier:       true,
+      loyaltyCardNumber: true,
+      fullName:          true,
+      createdAt:         true,
+      orders: {
+        where: { status: "delivered", paymentStatus: "paid" },
+        select: { totalPrice: true, orderDate: true },
+        orderBy: { orderDate: "desc" },
+      },
+    },
+  });
+  if (!user) return null;
+  const totalSpent = user.orders.reduce((s, o) => s + Number(o.totalPrice), 0);
+  const lastOrder  = user.orders[0]?.orderDate ?? null;
+  return { ...user, totalSpent, lastOrder };
+};

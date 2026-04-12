@@ -1,0 +1,18 @@
+export default function Loading() {
+  return (
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 lg:px-8 animate-pulse">
+      <div className="mb-6 h-8 w-40 rounded-full bg-slate-200" />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+            <div className="h-48 bg-slate-100" />
+            <div className="space-y-2 p-4">
+              <div className="h-4 w-full rounded-full bg-slate-200" />
+              <div className="h-8 rounded-2xl bg-slate-100" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

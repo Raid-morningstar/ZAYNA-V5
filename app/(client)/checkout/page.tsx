@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  createCheckoutSession,
-  Metadata,
-} from "@/actions/createCheckoutSession";
+import { createCMIPayment } from "@/actions/createCMIPayment";
 import { createManualOrder } from "@/actions/createManualOrder";
 import Container from "@/components/Container";
 import NoAccess from "@/components/NoAccess";
@@ -23,7 +20,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import toast from "react-hot-toast";
 
 type PaymentMethod = "cod" | "cmi_card";
@@ -123,7 +120,7 @@ export default function CheckoutPage() {
 
   /* ── Helpers ── */
   const fieldChange = (key: keyof AddressForm) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
   const prefillFrom = (addr: Address) => {
@@ -206,12 +203,7 @@ export default function CheckoutPage() {
         default: false,
       };
 
-      const metadata: Metadata = {
-        orderNumber: crypto.randomUUID(),
-        address,
-        paymentMethod,
-        promoCode: promoState?.valid ? promoCode.trim().toUpperCase() : undefined,
-      };
+      const orderNumber = crypto.randomUUID();
 
       if (paymentMethod === "cod") {
         const order = await createManualOrder({
@@ -227,13 +219,31 @@ export default function CheckoutPage() {
         return;
       }
 
-      const url = await createCheckoutSession(safeItems, metadata);
-      if (url) {
-        if (saveAddress) await persistAddress();
-        window.location.href = url;
-      } else {
-        toast.error("Impossible de lancer le paiement");
+      // CMI card payment — create pending order then POST form to CMI gateway
+      const { formParams, gatewayUrl } = await createCMIPayment({
+        items:       safeItems,
+        address,
+        orderNumber,
+        promoCode:   promoState?.valid ? promoCode.trim().toUpperCase() : undefined,
+      });
+
+      if (saveAddress) await persistAddress();
+      resetCart();
+
+      // Build a hidden form and submit it to CMI (browser navigates to CMI page)
+      const cmiForm = document.createElement("form");
+      cmiForm.method = "POST";
+      cmiForm.action = gatewayUrl;
+      cmiForm.style.display = "none";
+      for (const [key, value] of Object.entries(formParams)) {
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type  = "hidden";
+        hiddenInput.name  = key;
+        hiddenInput.value = value;
+        cmiForm.appendChild(hiddenInput);
       }
+      document.body.appendChild(cmiForm);
+      cmiForm.submit();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erreur lors du paiement");
     } finally {
@@ -522,8 +532,8 @@ export default function CheckoutPage() {
                   [
                     {
                       value:  "cmi_card" as PaymentMethod,
-                      label:  "Paiement par carte bancaire via Payzone",
-                      desc:   "Vous serez redirigé vers Payzone pour finaliser votre achat en toute sécurité.",
+                      label:  "Paiement par carte bancaire via CMI",
+                      desc:   "Vous serez redirigé vers la plateforme sécurisée CMI (Centre Monétique Interbancaire) pour finaliser votre achat.",
                       Icon:   CreditCard,
                       badges: ["VISA", "MC", "CMI"],
                     },

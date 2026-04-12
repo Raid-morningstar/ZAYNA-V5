@@ -27,13 +27,14 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
+import type { ElementType } from "react";
 import type { LoyaltyTier } from "@prisma/client";
 
 type Props = { params: Promise<{ id: string }> };
 
 const TIER_STYLE: Record<
   LoyaltyTier,
-  { gradient: string; text: string; icon: React.ElementType; ring: string; bar: string }
+  { gradient: string; text: string; icon: ElementType; ring: string; bar: string }
 > = {
   bronze: {
     gradient: "from-amber-500 via-orange-500 to-amber-600",

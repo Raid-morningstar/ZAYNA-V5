@@ -10,11 +10,12 @@ import { TIER_LABELS, TIER_THRESHOLDS } from "@/lib/loyalty";
 import { Crown, Medal, Search, Shield, Star, Users } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import type { ElementType } from "react";
 import type { LoyaltyTier } from "@prisma/client";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-const TIER_STYLE: Record<LoyaltyTier, { badge: string; icon: React.ElementType; ring: string }> = {
+const TIER_STYLE: Record<LoyaltyTier, { badge: string; icon: ElementType; ring: string }> = {
   bronze: { badge: "bg-amber-50 text-amber-700 ring-amber-200",    icon: Shield, ring: "ring-amber-200/60"  },
   silver: { badge: "bg-slate-100 text-slate-600 ring-slate-300",   icon: Medal,  ring: "ring-slate-200/60"  },
   gold:   { badge: "bg-yellow-50 text-yellow-700 ring-yellow-300", icon: Crown,  ring: "ring-yellow-300/60" },

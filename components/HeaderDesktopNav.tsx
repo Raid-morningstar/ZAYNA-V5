@@ -2,7 +2,7 @@
 
 import { useHydrated } from "@/hooks";
 import { UserButton, useAuth } from "@clerk/nextjs";
-import { LayoutDashboard, Logs } from "lucide-react";
+import { LayoutDashboard, Logs, Star } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import CartIcon from "./CartIcon";
@@ -27,15 +27,10 @@ const HeaderDesktopNav = () => {
   });
 
   useEffect(() => {
-    if (!isLoaded) {
-      return;
-    }
+    if (!isLoaded) return;
 
     if (!userId) {
-      setNavigationContext({
-        ordersCount: 0,
-        isAdmin: false,
-      });
+      setNavigationContext({ ordersCount: 0, isAdmin: false });
       return;
     }
 
@@ -43,38 +38,31 @@ const HeaderDesktopNav = () => {
 
     const loadNavigationContext = async () => {
       try {
+        // max-age=30 means the browser reuses the cached response for 30s
+        // across soft navigations — no DB call until the cache expires
         const response = await fetch("/api/navigation", {
-          cache: "no-store",
-        });
+          cache: "default",
+          next: { revalidate: 30 },
+        } as RequestInit);
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch navigation context: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`${response.status}`);
 
         const data = (await response.json()) as NavigationContext;
-
         if (!cancelled) {
           setNavigationContext({
             ordersCount: data.ordersCount || 0,
             isAdmin: Boolean(data.isAdmin),
           });
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
-          console.error("Failed to load navigation context:", error);
-          setNavigationContext({
-            ordersCount: 0,
-            isAdmin: false,
-          });
+          setNavigationContext({ ordersCount: 0, isAdmin: false });
         }
       }
     };
 
     loadNavigationContext();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [isLoaded, userId]);
 
   const isAuthReady = mounted && isLoaded;
@@ -93,6 +81,16 @@ const HeaderDesktopNav = () => {
             <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-shop_btn_dark_green px-1 text-[10px] font-semibold text-white">
               {ordersCount}
             </span>
+          </Link>
+        ) : null}
+
+        {isSignedIn ? (
+          <Link
+            href="/loyalty"
+            title="Ma carte fidélité"
+            className={iconButtonClassName}
+          >
+            <Star className="h-4.5 w-4.5" />
           </Link>
         ) : null}
 
@@ -142,6 +140,16 @@ const HeaderDesktopNav = () => {
             <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-shop_btn_dark_green px-1 text-[10px] font-semibold text-white">
               {ordersCount}
             </span>
+          </Link>
+        ) : null}
+
+        {isSignedIn ? (
+          <Link
+            href="/loyalty"
+            title="Ma carte fidélité"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-shop_light_green/35 bg-white/90 text-lightColor"
+          >
+            <Star className="h-4 w-4" />
           </Link>
         ) : null}
 

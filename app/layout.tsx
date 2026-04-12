@@ -10,7 +10,7 @@ const menuFont = Montserrat({
   display: "swap",
 });
 
-const RootLayout = ({ children }: { children: React.ReactNode }) => {
+const RootLayout = ({ children }: { children: import("react").ReactNode }) => {
   return (
     <html lang="fr">
       <body className={`font-poppins antialiased ${menuFont.variable}`}>

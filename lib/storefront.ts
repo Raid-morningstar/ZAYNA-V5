@@ -481,56 +481,40 @@ const buildFallbackShellData = (): StorefrontShellData => ({
 });
 
 const fetchStorefrontShellData = async (): Promise<StorefrontShellData> => {
-  const [settingsRecord, rawLinks, rawSocialLinks, navigationCategoriesRaw, footerCategoriesRaw] =
+  // Fetch settings, links, social links, and categories in ONE round-trip.
+  // Categories used for both nav (top 20) and footer (top 10) — one query, slice in JS.
+  const [settingsRecord, rawLinks, rawSocialLinks, allCategoriesRaw] =
     await Promise.all([
       prisma.storefrontSettings.findUnique({
-        where: {
-          id: "default",
-        },
+        where: { id: "default" },
       }),
       prisma.siteLink.findMany({
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        select: {
+          id: true, title: true, href: true, group: true,
+          sortOrder: true, openInNewTab: true,
+        },
       }),
       prisma.siteSocialLink.findMany({
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        select: {
+          id: true, platform: true, title: true, href: true,
+          sortOrder: true, openInNewTab: true,
+        },
       }),
       prisma.category.findMany({
         orderBy: [{ title: "asc" }],
         select: {
-          id: true,
-          title: true,
-          slug: true,
-          description: true,
-          range: true,
-          featured: true,
-          imageUrl: true,
-          _count: {
-            select: {
-              products: true,
-            },
-          },
+          id: true, title: true, slug: true, description: true,
+          range: true, featured: true, imageUrl: true,
+          _count: { select: { products: true } },
         },
-        take: 20,
-      }),
-      prisma.category.findMany({
-        orderBy: [{ title: "asc" }],
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          description: true,
-          range: true,
-          featured: true,
-          imageUrl: true,
-          _count: {
-            select: {
-              products: true,
-            },
-          },
-        },
-        take: 10,
+        take: 20, // top 20 for nav; footer uses first 10 (sliced below)
       }),
     ]);
+
+  const navigationCategoriesRaw = allCategoriesRaw;
+  const footerCategoriesRaw = allCategoriesRaw.slice(0, 10);
 
   const settings = normalizeSettings(settingsRecord);
   const linksByGroup = rawLinks.reduce<
