@@ -2,6 +2,7 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Montserrat } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import ServerActionRecovery from "@/components/ServerActionRecovery";
 
 const menuFont = Montserrat({
   subsets: ["latin"],
@@ -15,6 +16,7 @@ const RootLayout = ({ children }: { children: import("react").ReactNode }) => {
     <html lang="fr">
       <body className={`font-poppins antialiased ${menuFont.variable}`}>
         <ClerkProvider>
+          <ServerActionRecovery />
           {children}
           <Toaster
             position="bottom-right"

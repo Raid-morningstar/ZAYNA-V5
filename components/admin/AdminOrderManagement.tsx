@@ -169,14 +169,32 @@ const AdminOrderManagement = ({
   );
   const [draftStatus, setDraftStatus] = useState("");
 
+  const openOrder = (order: AdminOrder) => {
+    setSelectedOrderId(order.id);
+    setDraftStatus(order.adminStage);
+  };
+
+  const closeOrder = () => {
+    setSelectedOrderId(null);
+    setDraftStatus("");
+  };
+
   const [actionState, formAction, isPending] = useActionState(
     async (prev: { success: boolean; error?: string } | null, formData: FormData) => {
-      const result = await updateOrderStatusSilentAction(prev, formData);
-      if (result.success) {
-        closeOrder();
-        router.refresh();
+      try {
+        const result = await updateOrderStatusSilentAction(prev, formData);
+        if (result.success) {
+          closeOrder();
+          router.refresh();
+        }
+        return result;
+      } catch {
+        return {
+          success: false,
+          error:
+            "Action serveur introuvable. Rechargez la page puis reessayez la mise a jour.",
+        };
       }
-      return result;
     },
     null
   );
@@ -202,16 +220,6 @@ const AdminOrderManagement = ({
       ? stageOptions[currentIndex + 1]
       : null;
   }, [selectedOrder, stageOptions]);
-
-  const openOrder = (order: AdminOrder) => {
-    setSelectedOrderId(order.id);
-    setDraftStatus(order.adminStage);
-  };
-
-  const closeOrder = () => {
-    setSelectedOrderId(null);
-    setDraftStatus("");
-  };
 
   if (!orders.length) {
     return (
