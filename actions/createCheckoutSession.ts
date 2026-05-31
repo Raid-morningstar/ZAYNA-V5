@@ -102,11 +102,6 @@ export async function createCheckoutSession(
         if (!product) {
           throw new Error("One or more products are unavailable");
         }
-        if (product.stock < quantity) {
-          throw new Error(
-            `Stock insuffisant pour "${product.name}". Disponible: ${product.stock}, demande: ${quantity}.`
-          );
-        }
 
         return {
           product,

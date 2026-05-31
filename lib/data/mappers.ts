@@ -50,6 +50,7 @@ export const mapCategory = (category: {
   id: string;
   title: string;
   slug: string;
+  sortOrder?: number;
   description: string | null;
   range: number | null;
   featured: boolean;
@@ -65,6 +66,7 @@ export const mapCategory = (category: {
   _id: category.id,
   title: category.title,
   slug: { current: category.slug },
+  sortOrder: category.sortOrder ?? category.range ?? 0,
   description: category.description,
   range: category.range,
   featured: category.featured,

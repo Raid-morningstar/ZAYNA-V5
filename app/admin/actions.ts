@@ -841,6 +841,7 @@ const getValidBrandRecord = async (brandId: string | null) => {
 export async function createCategoryAction(formData: FormData) {
   return withAction("categories", "Impossible d'ajouter cette categorie.", async () => {
     const title = readText(formData, "title");
+    const sortOrder = readInteger(formData, "sortOrder", { min: 0, defaultValue: 0 });
     const description = readOptionalText(formData, "description");
     const featured = readBoolean(formData, "featured");
     const imageFile = formData.get("imageFile");
@@ -861,6 +862,7 @@ export async function createCategoryAction(formData: FormData) {
         data: {
           title,
           slug,
+          range: sortOrder,
           description,
           featured,
           imageUrl: uploadedImage?.url || null,
@@ -885,6 +887,7 @@ export async function updateCategoryAction(formData: FormData) {
   return withAction("categories", "Impossible de modifier cette categorie.", async () => {
     const id = requireId(readText(formData, "id"), "Categorie introuvable.");
     const title = readText(formData, "title");
+    const sortOrder = readInteger(formData, "sortOrder", { min: 0, defaultValue: 0 });
     const description = readOptionalText(formData, "description");
     const featured = readBoolean(formData, "featured");
     const imageFile = formData.get("imageFile");
@@ -920,6 +923,7 @@ export async function updateCategoryAction(formData: FormData) {
         },
         data: {
           title,
+          range: sortOrder,
           description,
           featured,
           ...(uploadedImage?.url

@@ -61,6 +61,8 @@ type AdminOrder = {
     imageUrl: string | null;
     quantity: number;
     unitPrice: number;
+    isOutOfStock?: boolean;
+    isStockInsufficient?: boolean;
   }>;
 };
 
@@ -587,6 +589,15 @@ const AdminOrderManagement = ({
                           <span>Quantite: {item.quantity}</span>
                           <span>Prix unitaire: {currencyFormatter.format(item.unitPrice)}</span>
                         </div>
+                        {item.isOutOfStock ? (
+                          <p className="mt-2 text-xs font-semibold text-rose-700">
+                            Rupture de stock
+                          </p>
+                        ) : item.isStockInsufficient ? (
+                          <p className="mt-2 text-xs font-semibold text-rose-700">
+                            Stock insuffisant
+                          </p>
+                        ) : null}
                       </div>
                       <div className="text-right text-sm font-semibold text-slate-900">
                         {currencyFormatter.format(item.unitPrice * item.quantity)}

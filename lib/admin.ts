@@ -253,6 +253,7 @@ export type AdminDashboardData = {
   categories: Array<{
     id: string;
     title: string;
+    sortOrder: number;
     description: string | null;
     featured: boolean;
     productCount: number;
@@ -318,6 +319,8 @@ export type AdminDashboardData = {
       imageUrl: string | null;
       quantity: number;
       unitPrice: number;
+      isOutOfStock?: boolean;
+      isStockInsufficient?: boolean;
     }>;
   }>;
   orderStageBreakdown: Array<{
@@ -438,9 +441,7 @@ const fetchAdminDashboardData = async (): Promise<AdminDashboardData> => {
       },
     }),
     prisma.category.findMany({
-      orderBy: {
-        title: "asc",
-      },
+      orderBy: [{ range: "asc" }, { title: "asc" }],
       include: {
         _count: {
           select: {
@@ -632,6 +633,7 @@ const fetchAdminDashboardData = async (): Promise<AdminDashboardData> => {
     categories: categories.map((category) => ({
       id: category.id,
       title: category.title,
+      sortOrder: category.range ?? 0,
       description: category.description,
       featured: category.featured,
       productCount: category._count.products,

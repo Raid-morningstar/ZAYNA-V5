@@ -148,16 +148,9 @@ export async function createManualOrderRecord(input: CreateManualOrderInput) {
 
     for (const productId of productIds) {
       const product = liveProductById.get(productId);
-      const requestedQty = quantityByProductId.get(productId) || 0;
 
       if (!product) {
         throw new Error("One or more products are unavailable");
-      }
-
-      if (product.stock < requestedQty) {
-        throw new Error(
-          `Stock insuffisant pour "${product.name}". Disponible: ${product.stock}, demande: ${requestedQty}.`
-        );
       }
     }
 
@@ -174,7 +167,7 @@ export async function createManualOrderRecord(input: CreateManualOrderInput) {
           id: product.id,
         },
         data: {
-          stock: product.stock - requestedQty,
+          stock: Math.max(product.stock - requestedQty, 0),
         },
         select: {
           id: true,

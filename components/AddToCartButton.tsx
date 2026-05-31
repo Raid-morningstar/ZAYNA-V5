@@ -18,15 +18,14 @@ const AddToCartButton = ({ product, className }: Props) => {
   const getItemCount = useStore((state) => state.getItemCount);
   const hasHydrated = useStore((state) => state.hasHydrated);
   const itemCount = hasHydrated ? getItemCount(product._id) : 0;
-  const isOutOfStock = product.stock === 0;
 
   const handleAddToCart = () => {
-    if ((product.stock as number) > itemCount) {
-      addItem(product);
-      toast.success(`${product.name?.substring(0, 24)} ajouté au panier`);
-    } else {
-      toast.error("Stock maximum atteint pour ce produit");
+    if (!hasHydrated) {
+      return;
     }
+
+    addItem(product);
+    toast.success(`${product.name?.substring(0, 24)} ajouté au panier`);
   };
   return (
     <div className="w-full h-12 flex items-center">
@@ -46,7 +45,6 @@ const AddToCartButton = ({ product, className }: Props) => {
       ) : (
         <Button
           onClick={handleAddToCart}
-          disabled={!hasHydrated || isOutOfStock}
           className={cn(
             "h-10 w-full rounded-md border border-shop_dark_green bg-shop_dark_green px-3 text-sm font-semibold tracking-normal text-white shadow-none hover:border-shop_btn_dark_green hover:bg-shop_btn_dark_green hoverEffect",
             className
@@ -54,11 +52,7 @@ const AddToCartButton = ({ product, className }: Props) => {
         >
           <ShoppingBag className="hidden sm:inline-flex h-4 w-4 shrink-0" />
           <span className="text-center whitespace-normal sm:whitespace-nowrap">
-            {!hasHydrated
-              ? "Chargement..."
-              : isOutOfStock
-                ? "Rupture de stock"
-                : "Ajouter au panier"}
+            Ajouter au panier
           </span>
         </Button>
       )}

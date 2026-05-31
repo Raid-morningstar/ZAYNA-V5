@@ -142,6 +142,17 @@ export default async function AdminCategoriesPage({
                 />
               </Field>
 
+              <Field label="Ordre d'affichage" htmlFor="category-sort-order">
+                <Input
+                  id="category-sort-order"
+                  name="sortOrder"
+                  type="number"
+                  min={0}
+                  defaultValue={0}
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50"
+                />
+              </Field>
+
               <Field label="Petite description" htmlFor="category-description">
                 <Textarea
                   id="category-description"
@@ -206,6 +217,9 @@ export default async function AdminCategoriesPage({
                         <p className="text-sm text-slate-600">
                           {category.productCount} produit(s)
                         </p>
+                        <p className="text-xs text-slate-500">
+                          Ordre d&apos;affichage: {category.sortOrder}
+                        </p>
                         {category.description ? (
                           <p className="max-w-2xl text-sm leading-6 text-slate-500">
                             {category.description}
@@ -238,6 +252,17 @@ export default async function AdminCategoriesPage({
                             id={`category-title-${category.id}`}
                             name="title"
                             defaultValue={category.title}
+                            className="h-11 rounded-2xl border-slate-200 bg-slate-50"
+                          />
+                        </Field>
+
+                        <Field label="Ordre d'affichage" htmlFor={`category-sort-order-${category.id}`}>
+                          <Input
+                            id={`category-sort-order-${category.id}`}
+                            name="sortOrder"
+                            type="number"
+                            min={0}
+                            defaultValue={category.sortOrder}
                             className="h-11 rounded-2xl border-slate-200 bg-slate-50"
                           />
                         </Field>

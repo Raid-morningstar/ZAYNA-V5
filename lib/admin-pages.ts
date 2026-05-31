@@ -34,6 +34,27 @@ const decimalToNumber = (value: Prisma.Decimal | number | null | undefined) => {
   return typeof value === "number" ? value : Number(value);
 };
 
+const isDatabaseUnavailableError = (error: unknown) => {
+  if (
+    error instanceof Prisma.PrismaClientInitializationError ||
+    error instanceof Prisma.PrismaClientRustPanicError
+  ) {
+    return true;
+  }
+
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return ["P1001", "P1002", "P1017"].includes(error.code);
+  }
+
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return /can't reach database server|database server|connection|timed out/i.test(
+    error.message
+  );
+};
+
 const toDate = (value: Date | string | null) => (value ? new Date(value) : null);
 
 const getUtcDateKey = (value: Date) =>
@@ -148,6 +169,9 @@ const mapOrders = (
       productImageUrlSnapshot: string | null;
       productPriceSnapshot: Prisma.Decimal | number;
       quantity: number;
+      product: {
+        stock: number;
+      } | null;
     }>;
   }>
 ): AdminDashboardData["orders"] =>
@@ -174,6 +198,10 @@ const mapOrders = (
       imageUrl: item.productImageUrlSnapshot,
       quantity: item.quantity,
       unitPrice: decimalToNumber(item.productPriceSnapshot),
+      isOutOfStock: (item.product?.stock ?? 1) <= 0,
+      isStockInsufficient:
+        (item.product?.stock ?? Number.POSITIVE_INFINITY) > 0 &&
+        item.quantity > (item.product?.stock ?? Number.POSITIVE_INFINITY),
     })),
   }));
 
@@ -237,6 +265,8 @@ const mapCategories = (
   categories: Array<{
     id: string;
     title: string;
+    sortOrder?: number;
+    range?: number | null;
     description: string | null;
     featured: boolean;
     imageUrl: string | null;
@@ -249,6 +279,7 @@ const mapCategories = (
   categories.map((category) => ({
     id: category.id,
     title: category.title,
+    sortOrder: category.sortOrder ?? category.range ?? 0,
     description: category.description,
     featured: category.featured,
     productCount: category._count.products,
@@ -660,6 +691,11 @@ async function fetchAdminOrdersPageData(): Promise<AdminOrdersPageData> {
               productImageUrlSnapshot: true,
               productPriceSnapshot: true,
               quantity: true,
+              product: {
+                select: {
+                  stock: true,
+                },
+              },
             },
           },
         },
@@ -912,12 +948,11 @@ async function fetchAdminCategoriesPageData(): Promise<AdminCategoriesPageData> 
     }),
     prisma.product.count(),
     prisma.category.findMany({
-      orderBy: {
-        title: "asc",
-      },
+      orderBy: [{ range: "asc" }, { title: "asc" }],
       select: {
         id: true,
         title: true,
+        range: true,
         description: true,
         featured: true,
         imageUrl: true,
@@ -952,7 +987,29 @@ const getCachedAdminCategoriesPageData = unstable_cache(
 
 export async function getAdminCategoriesPageData(): Promise<AdminCategoriesPageData> {
   await requireAdmin();
-  const data = await getCachedAdminCategoriesPageData();
+  let data: AdminCategoriesPageData;
+
+  try {
+    data = await getCachedAdminCategoriesPageData();
+  } catch (error) {
+    if (!isDatabaseUnavailableError(error)) {
+      throw error;
+    }
+
+    console.error(
+      "Admin categories page: database unavailable, returning empty fallback.",
+      error
+    );
+
+    return {
+      metrics: {
+        totalCategories: 0,
+        featuredCategories: 0,
+        totalProducts: 0,
+      },
+      categories: [],
+    };
+  }
 
   return {
     ...data,

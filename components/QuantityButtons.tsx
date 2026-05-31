@@ -15,7 +15,6 @@ const QuantityButtons = ({ product, className }: Props) => {
   const getItemCount = useStore((state) => state.getItemCount);
   const hasHydrated = useStore((state) => state.hasHydrated);
   const itemCount = hasHydrated ? getItemCount(product?._id) : 0;
-  const isOutOfStock = product?.stock === 0;
 
   const handleRemoveProduct = () => {
     removeItem(product?._id);
@@ -25,11 +24,11 @@ const QuantityButtons = ({ product, className }: Props) => {
   };
 
   const handleAddToCart = () => {
-    if ((product?.stock as number) > itemCount) {
-      addItem(product);
-    } else {
-      toast.error("Stock maximum atteint pour ce produit");
+    if (!hasHydrated) {
+      return;
     }
+
+    addItem(product);
   };
 
   return (
@@ -38,7 +37,7 @@ const QuantityButtons = ({ product, className }: Props) => {
         onClick={handleRemoveProduct}
         variant="outline"
         size="icon"
-        disabled={!hasHydrated || itemCount === 0 || isOutOfStock}
+        disabled={!hasHydrated || itemCount === 0}
         className="w-6 h-6 border hover:bg-shop_dark_green/20 hoverEffect"
       >
         <Minus />
@@ -50,7 +49,7 @@ const QuantityButtons = ({ product, className }: Props) => {
         onClick={handleAddToCart}
         variant="outline"
         size="icon"
-        disabled={!hasHydrated || isOutOfStock}
+        disabled={!hasHydrated}
         className="w-6 h-6 border hover:bg-shop_dark_green/20 hoverEffect"
       >
         <Plus />
@@ -60,4 +59,3 @@ const QuantityButtons = ({ product, className }: Props) => {
 };
 
 export default QuantityButtons;
-

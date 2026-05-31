@@ -3,6 +3,31 @@ import type { Category } from "@/types";
 
 export type NavCategoryItem = Category & { slug: { current: string } };
 
+const categoryOrderValue = (category: Category) => {
+  const sortOrder = Number(category.sortOrder);
+  if (Number.isFinite(sortOrder)) {
+    return sortOrder;
+  }
+
+  const range = Number(category.range);
+  if (Number.isFinite(range)) {
+    return range;
+  }
+
+  return 0;
+};
+
+const normalizedCategoryTitle = (category: Category) => (category.title || "").trim().toLowerCase();
+
+const compareCategoriesByDisplayOrder = (left: Category, right: Category) =>
+  categoryOrderValue(left) - categoryOrderValue(right) ||
+  (normalizedCategoryTitle(left) < normalizedCategoryTitle(right)
+    ? -1
+    : normalizedCategoryTitle(left) > normalizedCategoryTitle(right)
+      ? 1
+      : 0) ||
+  (left._id < right._id ? -1 : left._id > right._id ? 1 : 0);
+
 const normalizeHref = (href: string) => {
   const [path] = href.split("?");
   const cleaned = path.replace(/\/+$/g, "");
@@ -60,9 +85,9 @@ export const organizeHeaderLinks = (links: StorefrontLink[]) => {
 };
 
 export const buildCategoryTree = (categories: Category[]) => {
-  const categoryItems = categories.filter(
-    (category): category is NavCategoryItem => Boolean(category.slug?.current)
-  );
+  const categoryItems = categories
+    .filter((category): category is NavCategoryItem => Boolean(category.slug?.current))
+    .sort(compareCategoriesByDisplayOrder);
   const categoryMap = new Map(categoryItems.map((category) => [category._id, category]));
   const hasTreeData = categoryItems.some((category) => Boolean(category.parentId));
   const childrenByParent = new Map<string, NavCategoryItem[]>();
@@ -79,13 +104,8 @@ export const buildCategoryTree = (categories: Category[]) => {
     childrenByParent.set(category.parentId, parentChildren);
   }
 
-  topLevelCategories.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-
-  for (const [parentId, children] of childrenByParent.entries()) {
-    childrenByParent.set(
-      parentId,
-      children.sort((a, b) => (a.title || "").localeCompare(b.title || ""))
-    );
+  for (const [parentId, parentChildren] of childrenByParent.entries()) {
+    childrenByParent.set(parentId, [...parentChildren].sort(compareCategoriesByDisplayOrder));
   }
 
   return {

@@ -503,10 +503,15 @@ const fetchStorefrontShellData = async (): Promise<StorefrontShellData> => {
         },
       }),
       prisma.category.findMany({
-        orderBy: [{ title: "asc" }],
+        orderBy: [{ range: "asc" }, { title: "asc" }],
         select: {
-          id: true, title: true, slug: true, description: true,
-          range: true, featured: true, imageUrl: true,
+          id: true,
+          title: true,
+          slug: true,
+          range: true,
+          description: true,
+          featured: true,
+          imageUrl: true,
           _count: { select: { products: true } },
         },
         take: 20, // top 20 for nav; footer uses first 10 (sliced below)
@@ -558,7 +563,7 @@ const fetchStorefrontShellData = async (): Promise<StorefrontShellData> => {
 
 const getCachedStorefrontShellData = unstable_cache(
   fetchStorefrontShellData,
-  ["storefront-shell-data-v2"],
+  ["storefront-shell-data-v3"],
   {
     tags: [adminDataTag],
     revalidate: STOREFRONT_CONTENT_REVALIDATE,
@@ -792,7 +797,7 @@ const fetchStorefrontHomeData = async (): Promise<StorefrontHomeData> => {
 
 const getCachedStorefrontHomeData = unstable_cache(
   fetchStorefrontHomeData,
-  ["storefront-home-data-v2"],
+  ["storefront-home-data-v3"],
   {
     tags: [adminDataTag],
     revalidate: STOREFRONT_CONTENT_REVALIDATE,

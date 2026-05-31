@@ -26,6 +26,7 @@ export type Category = {
   _id: string;
   title?: string;
   slug?: Slug;
+  sortOrder?: number;
   description?: string | null;
   range?: number | null;
   featured?: boolean | null;

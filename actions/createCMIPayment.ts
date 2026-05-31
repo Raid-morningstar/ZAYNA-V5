@@ -71,8 +71,6 @@ export async function createCMIPayment(
   for (const [id, qty] of quantityByProductId) {
     const p = productById.get(id);
     if (!p) throw new Error("Un ou plusieurs produits sont indisponibles");
-    if (p.stock < qty)
-      throw new Error(`Stock insuffisant pour "${p.name}". Disponible : ${p.stock}, demandé : ${qty}.`);
     subtotal += Number(p.price) * qty;
   }
 
@@ -107,11 +105,10 @@ export async function createCMIPayment(
 
     for (const [id, qty] of quantityByProductId) {
       const p = liveById.get(id);
-      if (!p || p.stock < qty)
-        throw new Error(`Stock insuffisant — veuillez rafraîchir le panier`);
+      if (!p) throw new Error("Un ou plusieurs produits sont indisponibles");
       await tx.product.update({
         where: { id },
-        data: { stock: p.stock - qty },
+        data: { stock: Math.max(p.stock - qty, 0) },
         select: { id: true },
       });
     }
