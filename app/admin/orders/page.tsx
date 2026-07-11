@@ -43,6 +43,41 @@ export default async function AdminOrdersPage({
   ]);
   const statusMessage = getQueryValue(resolvedSearchParams, "status");
   const errorMessage = getQueryValue(resolvedSearchParams, "error");
+  const stageFilter = getQueryValue(resolvedSearchParams, "stage");
+  const orderStatusFilter = getQueryValue(resolvedSearchParams, "orderStatus") || getQueryValue(resolvedSearchParams, "statusFilter");
+  const paymentStatusFilter = getQueryValue(resolvedSearchParams, "paymentStatus");
+  const deliveryStatusFilter = getQueryValue(resolvedSearchParams, "deliveryStatus");
+  const ageFilter = getQueryValue(resolvedSearchParams, "age");
+  const staleOrderCutoff = Date.parse(data.staleOrderCutoff);
+  const filteredOrders = data.orders.filter((order) => {
+    if (
+      stageFilter === "priority" &&
+      !["pending", "confirmed", "preparing", "shipped"].includes(order.adminStage)
+    ) {
+      return false;
+    }
+
+    if (orderStatusFilter && order.status !== orderStatusFilter) {
+      return false;
+    }
+
+    if (paymentStatusFilter && order.paymentStatus !== paymentStatusFilter) {
+      return false;
+    }
+
+    if (deliveryStatusFilter && order.deliveryStatus !== deliveryStatusFilter) {
+      return false;
+    }
+
+    if (
+      ageFilter === "24h" &&
+      new Date(order.orderDate).getTime() >= staleOrderCutoff
+    ) {
+      return false;
+    }
+
+    return true;
+  });
   const paymentMethodLabels = Object.fromEntries(
     paymentMethodOptions.map((option) => [option.value, option.label])
   );
@@ -177,12 +212,16 @@ export default async function AdminOrdersPage({
         <SectionHeading
           badge="Liste complete"
           title="Ouvrir et traiter une commande"
-          description="La file prioritaire met d'abord en avant les commandes a valider par le bureau, puis la liste complete permet d'ouvrir la fiche detaillee, verifier les articles et changer le statut."
+          description={
+            filteredOrders.length === data.orders.length
+              ? "La file prioritaire met d'abord en avant les commandes a valider par le bureau, puis la liste complete permet d'ouvrir la fiche detaillee, verifier les articles et changer le statut."
+              : `${filteredOrders.length} commande(s) correspondent au filtre transmis par le dashboard.`
+          }
         />
 
         <div className={cn(adminSurfaceClassName, "p-5 md:p-6")}>
           <AdminOrderManagement
-            orders={data.orders}
+            orders={filteredOrders}
             stageOptions={adminOrderStageOptions.map((option) => ({
               value: option.value,
               label: option.label,

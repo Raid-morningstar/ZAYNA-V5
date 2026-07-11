@@ -240,7 +240,7 @@ export default async function AdminClientDetailPage({ params }: Props) {
                     </strong>{" "}
                     pour atteindre le tier{" "}
                     <strong>{TIER_LABELS[nextTier]}</strong>
-                    {" "}(≈ {Math.ceil(pointsNeeded / 10) * 100} MAD d'achat)
+                    {" "}(≈ {Math.ceil(pointsNeeded / 10) * 100} MAD d&apos;achat)
                   </p>
                 </>
               ) : (

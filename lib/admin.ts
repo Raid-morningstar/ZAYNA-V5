@@ -1,4 +1,5 @@
 import {
+  DeliveryStatus,
   LoyaltyTier,
   OrderStatus,
   PaymentMethod,
@@ -121,6 +122,25 @@ export const adminStageToOrderStatus = (stage: AdminOrderStage): OrderStatus => 
     case "pending":
     default:
       return "pending";
+  }
+};
+
+export const orderStatusToDeliveryStatus = (status: OrderStatus): DeliveryStatus => {
+  switch (status) {
+    case "paid":
+      return "preparing";
+    case "shipped":
+      return "in_transit";
+    case "out_for_delivery":
+      return "out_for_delivery";
+    case "delivered":
+      return "delivered";
+    case "cancelled":
+      return "failed";
+    case "pending":
+    case "processing":
+    default:
+      return "not_assigned";
   }
 };
 
@@ -275,6 +295,7 @@ export type AdminDashboardData = {
     price: number;
     discount: number;
     stock: number;
+    lastRestockedAt: Date | null;
     status: ProductStatus;
     isFeatured: boolean;
     brandId: string | null;
@@ -309,6 +330,11 @@ export type AdminDashboardData = {
     totalPrice: number;
     status: OrderStatus;
     adminStage: AdminOrderStage;
+    deliveryStatus: DeliveryStatus;
+    deliveryCompany: string | null;
+    deliveryPersonName: string | null;
+    driverPhoneNumber: string | null;
+    trackingNumber: string | null;
     paymentStatus: PaymentStatus;
     paymentMethod: PaymentMethod;
     orderDate: Date;
@@ -348,6 +374,7 @@ export type AdminDashboardData = {
     id: string;
     name: string;
     stock: number;
+    lastRestockedAt: Date | null;
     imageUrl: string | null;
   }>;
 };
@@ -478,6 +505,7 @@ const fetchAdminDashboardData = async (): Promise<AdminDashboardData> => {
         price: true,
         discount: true,
         stock: true,
+        lastRestockedAt: true,
         status: true,
         isFeatured: true,
         brandId: true,
@@ -552,6 +580,7 @@ const fetchAdminDashboardData = async (): Promise<AdminDashboardData> => {
         id: true,
         name: true,
         stock: true,
+        lastRestockedAt: true,
         images: {
           orderBy: {
             sortOrder: "asc",
@@ -655,6 +684,7 @@ const fetchAdminDashboardData = async (): Promise<AdminDashboardData> => {
       price: decimalToNumber(product.price),
       discount: product.discount,
       stock: product.stock,
+      lastRestockedAt: product.lastRestockedAt,
       status: product.status,
       isFeatured: product.isFeatured,
       brandId: product.brandId,
@@ -689,6 +719,11 @@ const fetchAdminDashboardData = async (): Promise<AdminDashboardData> => {
       totalPrice: decimalToNumber(order.totalPrice),
       status: order.status,
       adminStage: getAdminOrderStage(order.status),
+      deliveryStatus: order.deliveryStatus,
+      deliveryCompany: order.deliveryCompany,
+      deliveryPersonName: order.deliveryPersonName,
+      driverPhoneNumber: order.driverPhoneNumber,
+      trackingNumber: order.trackingNumber,
       paymentStatus: order.paymentStatus,
       paymentMethod: order.paymentMethod,
       orderDate: order.orderDate,
@@ -732,6 +767,7 @@ const fetchAdminDashboardData = async (): Promise<AdminDashboardData> => {
       id: item.id,
       name: item.name,
       stock: item.stock,
+      lastRestockedAt: item.lastRestockedAt,
       imageUrl: item.images[0]?.url || null,
     })),
   };
@@ -758,6 +794,7 @@ export const getAdminDashboardData = async (): Promise<AdminDashboardData> => {
     })),
     products: data.products.map((product) => ({
       ...product,
+      lastRestockedAt: toDate(product.lastRestockedAt),
       updatedAt: new Date(product.updatedAt),
     })),
     promoCodes: data.promoCodes.map((promo) => ({
@@ -773,6 +810,10 @@ export const getAdminDashboardData = async (): Promise<AdminDashboardData> => {
       ...customer,
       lastOrderDate: toDate(customer.lastOrderDate),
       createdAt: new Date(customer.createdAt),
+    })),
+    lowStockItems: data.lowStockItems.map((item) => ({
+      ...item,
+      lastRestockedAt: toDate(item.lastRestockedAt),
     })),
   };
 };

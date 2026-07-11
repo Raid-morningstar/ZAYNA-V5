@@ -14,6 +14,7 @@ import {
   adminOrderStageOptions,
   adminStageToOrderStatus,
   getAdminDataTag,
+  orderStatusToDeliveryStatus,
   requireAdmin,
 } from "@/lib/admin";
 import { deleteStoredAsset, deleteStoredAssets, isUploadedFile, saveOptimizedImage } from "@/lib/admin-media";
@@ -1180,6 +1181,7 @@ export async function createProductAction(formData: FormData) {
             salePrice,
             discount,
             stock,
+            lastRestockedAt: stock > 0 ? new Date() : null,
             status: deriveProductStatus(discount, isFeatured),
             isFeatured,
             brandId: brand?.id || null,
@@ -1259,6 +1261,8 @@ export async function updateProductAction(formData: FormData) {
       },
       select: {
         slug: true,
+        stock: true,
+        lastRestockedAt: true,
         brand: {
           select: {
             slug: true,
@@ -1318,6 +1322,8 @@ export async function updateProductAction(formData: FormData) {
             salePrice,
             discount,
             stock,
+            lastRestockedAt:
+              stock > existingProduct.stock ? new Date() : existingProduct.lastRestockedAt,
             status: deriveProductStatus(discount, isFeatured),
             isFeatured,
             brandId: brand?.id || null,
@@ -2678,6 +2684,8 @@ export async function updateOrderStatusAction(formData: FormData) {
       where: { id },
       data: {
         status,
+        deliveryStatus: orderStatusToDeliveryStatus(status),
+        ...(status !== order.status ? { statusChangedAt: new Date() } : {}),
         // COD : mark payment as paid when delivered
         ...(isTransitionToDelivered &&
         order.paymentMethod === "cod" &&
@@ -2755,6 +2763,8 @@ export async function updateOrderStatusSilentAction(
       where: { id },
       data: {
         status,
+        deliveryStatus: orderStatusToDeliveryStatus(status),
+        ...(status !== order.status ? { statusChangedAt: new Date() } : {}),
         ...(isTransitionToDelivered &&
         order.paymentMethod === "cod" &&
         order.paymentStatus !== "paid"

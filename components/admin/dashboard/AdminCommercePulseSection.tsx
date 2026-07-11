@@ -1,87 +1,148 @@
-import { Activity, Boxes } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Activity, CreditCard, Layers3 } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { adminSurfaceClassName } from "@/components/admin/AdminPagePrimitives";
+import {
+  adminCurrencyFormatter,
+  adminSurfaceClassName,
+  formatLabel,
+} from "@/components/admin/AdminPagePrimitives";
+import { cn } from "@/lib/utils";
 import AdminRevenueChart from "./AdminRevenueChart";
-import AdminStageRing from "./AdminStageRing";
-import AdminTopProductsList from "./AdminTopProductsList";
 import type { AdminOverviewData } from "@/lib/admin-pages";
 
 type Props = {
-  revenueSeries: AdminOverviewData["revenueSeries"];
-  orderStageBreakdown: AdminOverviewData["orderStageBreakdown"];
-  topProducts: AdminOverviewData["topProducts"];
+  analytics: AdminOverviewData["analytics"];
   latestWeekLabel: string;
 };
 
+const countFormatter = new Intl.NumberFormat("fr-MA");
+
+const BarRow = ({
+  label,
+  value,
+  max,
+  helper,
+}: {
+  label: string;
+  value: number;
+  max: number;
+  helper?: string;
+}) => {
+  const width = max > 0 ? Math.max(8, Math.round((value / max) * 100)) : 0;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <span className="font-medium text-slate-700">{label}</span>
+        <span className="font-semibold text-slate-950">{countFormatter.format(value)}</span>
+      </div>
+      <div className="h-2.5 rounded-full bg-slate-100">
+        <div
+          className="h-full rounded-full bg-shop_btn_dark_green"
+          style={{ width: `${width}%` }}
+        />
+      </div>
+      {helper ? <p className="text-xs text-slate-500">{helper}</p> : null}
+    </div>
+  );
+};
+
 export default function AdminCommercePulseSection({
-  revenueSeries,
-  orderStageBreakdown,
-  topProducts,
+  analytics,
   latestWeekLabel,
 }: Props) {
+  const maxPayment = Math.max(...analytics.paidVsUnpaid.map((item) => item.count), 1);
+  const maxStatus = Math.max(...analytics.ordersByStatus.map((item) => item.count), 1);
+  const maxCategory = Math.max(...analytics.ordersByCategory.map((item) => item.orders), 1);
+
   return (
-    <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(350px,0.95fr)]">
-      {/* ─── Revenue chart ─── */}
-      <div className={cn(adminSurfaceClassName, "overflow-hidden border-sky-100/80 p-6")}>
+    <section className="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
+      <div className={cn(adminSurfaceClassName, "overflow-hidden p-5")}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <Badge className="bg-sky-50 text-sky-700 hover:bg-sky-50">Commerce pulse</Badge>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-              Revenus et cadence des commandes
+            <Badge className="bg-sky-50 text-sky-700 hover:bg-sky-50">Analytics</Badge>
+            <h2 className="mt-3 text-xl font-semibold tracking-tight text-slate-950">
+              Revenus et commandes
             </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Une lecture 14 jours pour voir si le flux du dashboard accelere, ralentit ou demande
-              une action immediate.
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              Fenetre active: {latestWeekLabel}.
             </p>
-          </div>
-
-          <div className="rounded-[22px] border border-slate-200/80 bg-slate-50/80 px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-              Fenetre courante
-            </p>
-            <p className="mt-2 text-lg font-semibold text-slate-950">{latestWeekLabel}</p>
           </div>
         </div>
 
-        <div className="mt-6">
-          <AdminRevenueChart data={revenueSeries} />
+        <div className="mt-5">
+          <AdminRevenueChart data={analytics.revenueSeries} />
         </div>
       </div>
 
-      {/* ─── Stage ring + Top products ─── */}
-      <div className="space-y-6">
-        <div className={cn(adminSurfaceClassName, "p-6")}>
+      <div className="grid gap-5">
+        <div className={cn(adminSurfaceClassName, "p-5")}>
           <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-shop_btn_dark_green" />
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Distribution
-              </p>
-              <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
-                Etats des commandes
-              </h2>
-            </div>
+            <CreditCard className="h-5 w-5 text-shop_btn_dark_green" />
+            <h2 className="text-base font-semibold text-slate-950">Payees vs non payees</h2>
           </div>
-          <div className="mt-5">
-            <AdminStageRing data={orderStageBreakdown} />
+          <div className="mt-5 space-y-4">
+            {analytics.paidVsUnpaid.length ? (
+              analytics.paidVsUnpaid.map((item) => (
+                <BarRow
+                  key={item.status}
+                  label={formatLabel(item.status)}
+                  value={item.count}
+                  max={maxPayment}
+                />
+              ))
+            ) : (
+              <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                Aucun paiement dans la periode.
+              </p>
+            )}
           </div>
         </div>
 
-        <div className={cn(adminSurfaceClassName, "p-6")}>
+        <div className={cn(adminSurfaceClassName, "p-5")}>
           <div className="flex items-center gap-2">
-            <Boxes className="h-5 w-5 text-shop_btn_dark_green" />
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Best-sellers
-              </p>
-              <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
-                Produits qui tirent le flux
-              </h2>
-            </div>
+            <Activity className="h-5 w-5 text-shop_btn_dark_green" />
+            <h2 className="text-base font-semibold text-slate-950">Commandes par statut</h2>
           </div>
-          <div className="mt-5">
-            <AdminTopProductsList items={topProducts} />
+          <div className="mt-5 space-y-4">
+            {analytics.ordersByStatus.length ? (
+              analytics.ordersByStatus.map((item) => (
+                <BarRow
+                  key={item.status}
+                  label={formatLabel(item.status)}
+                  value={item.count}
+                  max={maxStatus}
+                />
+              ))
+            ) : (
+              <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                Aucune commande dans la periode.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className={cn(adminSurfaceClassName, "p-5")}>
+          <div className="flex items-center gap-2">
+            <Layers3 className="h-5 w-5 text-shop_btn_dark_green" />
+            <h2 className="text-base font-semibold text-slate-950">Commandes par categorie</h2>
+          </div>
+          <div className="mt-5 space-y-4">
+            {analytics.ordersByCategory.length ? (
+              analytics.ordersByCategory.map((item) => (
+                <BarRow
+                  key={item.category}
+                  label={item.category}
+                  value={item.orders}
+                  max={maxCategory}
+                  helper={adminCurrencyFormatter.format(item.revenue)}
+                />
+              ))
+            ) : (
+              <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                Aucune categorie vendue dans la periode.
+              </p>
+            )}
           </div>
         </div>
       </div>

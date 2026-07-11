@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { verifyCMICallback } from "@/lib/cmi";
+import { getAdminDataTag, orderStatusToDeliveryStatus } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+
+const revalidateOrderViews = () => {
+  revalidateTag(getAdminDataTag(), "max");
+  revalidatePath("/admin", "layout");
+  revalidatePath("/orders");
+};
 
 export async function POST(req: NextRequest) {
   const storeKey = process.env.CMI_STORE_KEY;
@@ -56,6 +64,8 @@ export async function POST(req: NextRequest) {
       data: {
         paymentStatus: "paid",
         status:        "processing",
+        deliveryStatus: orderStatusToDeliveryStatus("processing"),
+        ...(order.status !== "processing" ? { statusChangedAt: new Date() } : {}),
         // Store CMI transaction reference (reusing the external payment ID field)
         stripePaymentIntentId: params.TransId || params.TRANID || null,
       },
@@ -79,10 +89,17 @@ export async function POST(req: NextRequest) {
       }
       await tx.order.update({
         where: { orderNumber: oid },
-        data: { status: "cancelled", paymentStatus: "failed" },
+        data: {
+          status: "cancelled",
+          paymentStatus: "failed",
+          deliveryStatus: orderStatusToDeliveryStatus("cancelled"),
+          ...(order.status !== "cancelled" ? { statusChangedAt: new Date() } : {}),
+        },
       });
     });
   }
+
+  revalidateOrderViews();
 
   // CMI requires this exact response to capture the payment
   return new NextResponse("ACTION=POSTAUTH", {

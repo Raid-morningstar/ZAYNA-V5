@@ -51,6 +51,11 @@ type AdminOrder = {
   totalPrice: number;
   status: string;
   adminStage: string;
+  deliveryStatus: string;
+  deliveryCompany: string | null;
+  deliveryPersonName: string | null;
+  driverPhoneNumber: string | null;
+  trackingNumber: string | null;
   paymentStatus: string;
   paymentMethod: string;
   orderDate: string | Date;
@@ -381,6 +386,7 @@ const AdminOrderManagement = ({
               <TableHead>Total</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead>Paiement</TableHead>
+              <TableHead>Livraison</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -421,6 +427,14 @@ const AdminOrderManagement = ({
                     <StatusPill value={order.paymentStatus} />
                     <p className="text-xs text-slate-500">
                       {paymentMethodLabels[order.paymentMethod] || formatLabel(order.paymentMethod)}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell className="align-top">
+                  <div className="space-y-1">
+                    <StatusPill value={order.deliveryStatus} />
+                    <p className="text-xs text-slate-500">
+                      {order.deliveryCompany || "Transporteur non renseigne"}
                     </p>
                   </div>
                 </TableCell>
@@ -537,6 +551,13 @@ const AdminOrderManagement = ({
                         .filter(Boolean)
                         .join(", ") || "Ville non renseignee"}
                     </p>
+                    <div className="pt-1">
+                      <StatusPill value={selectedOrder.deliveryStatus} />
+                    </div>
+                    <p>Transporteur: {selectedOrder.deliveryCompany || "Non renseigne"}</p>
+                    <p>Livreur: {selectedOrder.deliveryPersonName || "Non renseigne"}</p>
+                    <p>Telephone livreur: {selectedOrder.driverPhoneNumber || "Non renseigne"}</p>
+                    <p>Tracking: {selectedOrder.trackingNumber || "Non renseigne"}</p>
                   </div>
                 </div>
 

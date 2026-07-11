@@ -31,6 +31,17 @@ enum PaymentStatus {
   refunded
 }
 
+enum DeliveryStatus {
+  not_assigned
+  preparing
+  in_transit
+  out_for_delivery
+  delivered
+  delayed
+  failed
+  returned
+}
+
 enum PaymentMethod {
   cod
   cmi_card
@@ -163,6 +174,7 @@ model Product {
   salePrice                   Decimal?                     @db.Decimal(10, 2)
   discount                    Int                          @default(0)
   stock                       Int                          @default(0)
+  lastRestockedAt             DateTime?
   status                      ProductStatus                @default(new)
   isActive                    Boolean                      @default(true)
   isFeatured                  Boolean                      @default(false)
@@ -319,6 +331,7 @@ model Order {
   promoCode                String?
   promoDiscount            Decimal       @default(0) @db.Decimal(10, 2)
   orderDate                DateTime      @default(now())
+  statusChangedAt          DateTime      @default(now())
   installmentMonths        Int?
   installmentMonthlyAmount Decimal?      @db.Decimal(10, 2)
   shippingName             String?
@@ -327,6 +340,11 @@ model Order {
   shippingCity             String?
   shippingState            String?
   shippingZip              String?
+  deliveryCompany          String?
+  deliveryPersonName       String?
+  driverPhoneNumber        String?
+  trackingNumber           String?
+  deliveryStatus           DeliveryStatus @default(not_assigned)
   invoiceId                String?
   invoiceNumber            String?
   invoiceHostedUrl         String?
@@ -339,6 +357,8 @@ model Order {
 
   @@index([clerkUserId, orderDate])
   @@index([status, paymentStatus])
+  @@index([deliveryStatus, orderDate])
+  @@index([statusChangedAt])
   @@index([email])
 }
 

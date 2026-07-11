@@ -1,6 +1,9 @@
-import { AlertTriangle, Package2 } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, ArrowRight, Package2 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import {
+  adminDateFormatter,
   adminSurfaceClassName,
   EmptyState,
   MediaThumb,
@@ -10,32 +13,68 @@ import type { AdminOverviewData } from "@/lib/admin-pages";
 
 type Props = {
   lowStockItems: AdminOverviewData["lowStockItems"];
+  inventorySummary: AdminOverviewData["inventorySummary"];
 };
 
-export default function AdminLowStockCard({ lowStockItems }: Props) {
+export default function AdminLowStockCard({
+  lowStockItems,
+  inventorySummary,
+}: Props) {
   return (
-    <div className={cn(adminSurfaceClassName, "p-6")}>
-      <div className="flex items-center gap-2">
-        <AlertTriangle className="h-5 w-5 text-shop_btn_dark_green" />
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-            Surveillance
+    <div className={cn(adminSurfaceClassName, "p-5")}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-shop_btn_dark_green" />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              Inventaire
+            </p>
+            <h2 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+              Alertes stock
+            </h2>
+          </div>
+        </div>
+
+        <Link
+          href="/admin/products?stock=low#products-list"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-shop_btn_dark_green transition-colors hover:bg-slate-50"
+        >
+          Inventaire
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-rose-100 bg-rose-50 p-3">
+          <p className="text-xs font-semibold text-rose-700">Rupture</p>
+          <p className="mt-1 text-2xl font-semibold text-rose-950">
+            {inventorySummary.outOfStock}
           </p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
-            Stock faible
-          </h2>
+        </div>
+        <div className="rounded-2xl border border-amber-100 bg-amber-50 p-3">
+          <p className="text-xs font-semibold text-amber-700">Stock faible</p>
+          <p className="mt-1 text-2xl font-semibold text-amber-950">
+            {inventorySummary.lowStock}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-orange-100 bg-orange-50 p-3">
+          <p className="text-xs font-semibold text-orange-700">Critique</p>
+          <p className="mt-1 text-2xl font-semibold text-orange-950">
+            {inventorySummary.criticalStock}
+          </p>
         </div>
       </div>
 
       <div className="mt-5 space-y-3">
         {lowStockItems.length ? (
           lowStockItems.map((item) => {
-            const progress = Math.max(Math.round((item.stock / 5) * 100), item.stock > 0 ? 16 : 6);
+            const progress = Math.max(Math.round((item.stock / 5) * 100), item.stock > 0 ? 14 : 5);
 
             return (
-              <div
+              <Link
                 key={item.id}
-                className="rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4"
+                href={`/admin/products?stock=${item.stock === 0 ? "out" : "low"}#products-list`}
+                className="block rounded-[22px] border border-slate-200/80 bg-slate-50/80 p-4 transition-colors hover:border-shop_light_green/40 hover:bg-white"
               >
                 <div className="flex items-center gap-3">
                   <MediaThumb src={item.imageUrl} alt={item.name} icon={Package2} />
@@ -54,15 +93,21 @@ export default function AdminLowStockCard({ lowStockItems }: Props) {
                           item.stock === 0
                             ? "bg-rose-500"
                             : item.stock <= 2
-                              ? "bg-amber-500"
-                              : "bg-emerald-500"
+                              ? "bg-orange-500"
+                              : "bg-amber-500"
                         )}
                         style={{ width: `${progress}%` }}
                       />
                     </div>
+                    <p className="mt-2 text-xs text-slate-500">
+                      Dernier reapprovisionnement:{" "}
+                      {item.lastRestockedAt
+                        ? adminDateFormatter.format(item.lastRestockedAt)
+                        : "non renseigne"}
+                    </p>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })
         ) : (

@@ -55,6 +55,13 @@ export default async function AdminProductsPage({
   ]);
   const statusMessage = getQueryValue(resolvedSearchParams, "status");
   const errorMessage = getQueryValue(resolvedSearchParams, "error");
+  const stockFilter = getQueryValue(resolvedSearchParams, "stock");
+  const visibleProducts =
+    stockFilter === "out"
+      ? data.products.filter((product) => product.stock <= 0)
+      : stockFilter === "low"
+        ? data.products.filter((product) => product.stock > 0 && product.stock <= 5)
+        : data.products;
 
   return (
     <div className="space-y-8 lg:space-y-10">
@@ -312,20 +319,24 @@ export default async function AdminProductsPage({
           </div>
         </div>
 
-        <div className={cn(adminSurfaceClassName, "p-6")}>
+        <div id="products-list" className={cn(adminSurfaceClassName, "p-6")}>
           <SectionHeading
             badge="Catalogue"
             title="Produits existants"
             description={
-              data.metrics.totalProducts > data.products.length
-                ? `Les ${data.products.length} produits les plus recents sont affiches pour garder la page rapide.`
+              stockFilter === "out"
+                ? "Vue filtree sur les produits en rupture de stock."
+                : stockFilter === "low"
+                  ? "Vue filtree sur les produits avec stock faible."
+                  : data.metrics.totalProducts > data.products.length
+                    ? `Les ${data.products.length} produits les plus recents sont affiches pour garder la page rapide.`
                 : "Tous les produits sont affiches dans cette page."
             }
           />
 
           <div className="mt-6 space-y-4">
-            {data.products.length ? (
-              data.products.map((product) => (
+            {visibleProducts.length ? (
+              visibleProducts.map((product) => (
                 <div
                   key={product.id}
                   className="rounded-[28px] border border-slate-200 bg-slate-50/70 p-5 shadow-[0_18px_40px_-36px_rgba(15,23,42,0.25)]"
@@ -516,7 +527,11 @@ export default async function AdminProductsPage({
             ) : (
               <EmptyState
                 title="Aucun produit"
-                description="Ajoutez votre premier produit pour commencer a remplir la boutique."
+                description={
+                  stockFilter
+                    ? "Aucun produit ne correspond au filtre de stock actif."
+                    : "Ajoutez votre premier produit pour commencer a remplir la boutique."
+                }
               />
             )}
           </div>

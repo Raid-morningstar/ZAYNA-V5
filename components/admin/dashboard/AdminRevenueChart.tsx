@@ -90,7 +90,7 @@ export default function AdminRevenueChart({
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}
           className="h-[280px] w-full"
           role="img"
-          aria-label="Evolution des revenus et des commandes sur 14 jours"
+          aria-label="Evolution des revenus et des commandes sur la periode active"
         >
           <defs>
             <linearGradient id={`${gradientId}-area`} x1="0" x2="0" y1="0" y2="1">
@@ -176,12 +176,12 @@ export default function AdminRevenueChart({
       <div className="grid gap-3 md:grid-cols-3">
         <div className="rounded-[22px] border border-slate-200/80 bg-white/88 px-4 py-3 shadow-[0_20px_40px_-34px_rgba(15,23,42,0.28)]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-            14 jours
+            Periode
           </p>
           <p className="mt-2 text-lg font-semibold text-slate-950">
             {adminCurrencyFormatter.format(totalRevenue)}
           </p>
-          <p className="mt-1 text-xs text-slate-500">Revenus encaisses sur la periode.</p>
+          <p className="mt-1 text-xs text-slate-500">Revenus encaisses sur la periode active.</p>
         </div>
 
         <div className="rounded-[22px] border border-slate-200/80 bg-white/88 px-4 py-3 shadow-[0_20px_40px_-34px_rgba(15,23,42,0.28)]">
@@ -189,7 +189,7 @@ export default function AdminRevenueChart({
             Activite
           </p>
           <p className="mt-2 text-lg font-semibold text-slate-950">{totalOrders}</p>
-          <p className="mt-1 text-xs text-slate-500">Commandes creees pendant les 14 derniers jours.</p>
+          <p className="mt-1 text-xs text-slate-500">Commandes creees pendant la periode active.</p>
         </div>
 
         <div className="rounded-[22px] border border-slate-200/80 bg-white/88 px-4 py-3 shadow-[0_20px_40px_-34px_rgba(15,23,42,0.28)]">

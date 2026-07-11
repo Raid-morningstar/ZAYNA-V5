@@ -167,7 +167,7 @@ const CartPage = () => {
                     <PriceFormatter amount={subtotal} className="text-sm font-semibold text-shop_dark_green" />
                   </div>
                   <p className="mt-1 text-[11px] text-lightColor/70">
-                    Frais de livraison calculés à l'étape suivante
+                    Frais de livraison calculés à l&apos;étape suivante
                   </p>
 
                   <div className="my-4 border-t border-slate-100" />
