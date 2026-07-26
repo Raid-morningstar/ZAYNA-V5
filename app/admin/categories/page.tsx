@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getAdminCategoriesPageData } from "@/lib/admin-pages";
 import { resolveImageUrl } from "@/lib/image";
 import { cn } from "@/lib/utils";
+import CategoryReorder from "@/components/admin/CategoryReorder";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -196,6 +197,7 @@ export default async function AdminCategoriesPage({
           />
 
           <div className="mt-6 space-y-4">
+            <CategoryReorder categories={data.categories} />
             {data.categories.length ? (
               data.categories.map((category) => (
                 <div
