@@ -31,6 +31,8 @@ const SHIPPING: Record<ShippingZone, { cost: number; freeFrom: number }> = {
   other: { cost: 50,  freeFrom: 499 },
 };
 
+const cmiEnabled = process.env.NEXT_PUBLIC_ENABLE_CMI === "true";
+
 type AddressForm = {
   pays: string;
   prenom: string;
@@ -530,13 +532,15 @@ export default function CheckoutPage() {
               <div className="space-y-3 p-5">
                 {(
                   [
-                    {
+                    ...(cmiEnabled
+                      ? [{
                       value:  "cmi_card" as PaymentMethod,
                       label:  "Paiement par carte bancaire via CMI",
                       desc:   "Vous serez redirigé vers la plateforme sécurisée CMI (Centre Monétique Interbancaire) pour finaliser votre achat.",
                       Icon:   CreditCard,
                       badges: ["VISA", "MC", "CMI"],
-                    },
+                      }]
+                      : []),
                     {
                       value:  "cod" as PaymentMethod,
                       label:  "Paiement à la livraison",

@@ -18,6 +18,7 @@ Create `.env` from `.env.example` and fill:
 
 ```bash
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/zayna"
+DATABASE_URL_POOLED=""
 NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 ADMIN_EMAILS="admin@example.com"
 ADMIN_USER_IDS=""
@@ -27,11 +28,19 @@ CLERK_SECRET_KEY="sk_test_replace_me"
 
 STRIPE_SECRET_KEY="sk_test_replace_me"
 STRIPE_WEBHOOK_SECRET="whsec_replace_me"
+NEXT_PUBLIC_ENABLE_CMI="false"
+CMI_CLIENT_ID=""
+CMI_STORE_KEY=""
+NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="replace_with_base64_32_byte_key"
 ```
 
 Prisma CLI reads from `.env` in this repo.
 
 `ADMIN_EMAILS` controls who can access `/admin`. In local development, if you do not set `ADMIN_EMAILS` or `ADMIN_USER_IDS`, the admin area falls back to allowing the signed-in user.
+
+`DATABASE_URL_POOLED` is optional and useful for hosted/serverless production runtimes that need a pooled Postgres connection.
+
+Set `NEXT_PUBLIC_ENABLE_CMI="true"` only when `CMI_CLIENT_ID` and `CMI_STORE_KEY` are configured for production. Otherwise the storefront keeps the CMI payment option hidden and falls back to cash on delivery only.
 
 ## Install
 
@@ -115,6 +124,11 @@ npm run build
 
 - Deploy on Vercel with the same env vars from `.env.example`.
 - Provision a PostgreSQL database and set `DATABASE_URL`.
+- Optionally set `DATABASE_URL_POOLED` if your production database provider gives you a pooled/runtime connection string.
+- Set `NEXT_PUBLIC_BASE_URL` to your real production URL, not `localhost`.
+- Set `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` to a stable base64-encoded 32-byte key.
+- Set `ADMIN_EMAILS` or `ADMIN_USER_IDS` before opening `/admin` in production.
+- Enable CMI only when `NEXT_PUBLIC_ENABLE_CMI`, `CMI_CLIENT_ID`, and `CMI_STORE_KEY` are all configured.
 - Run Prisma migrations during deployment with:
 
 ```bash

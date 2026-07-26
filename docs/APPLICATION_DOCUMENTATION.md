@@ -165,6 +165,7 @@ Minimum environment variables:
 
 ```env
 DATABASE_URL="postgresql://postgres:password@localhost:5432/zayna"
+DATABASE_URL_POOLED=""
 NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 ADMIN_EMAILS="admin@example.com"
 ADMIN_USER_IDS=""
@@ -172,11 +173,16 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_replace_me"
 CLERK_SECRET_KEY="sk_test_replace_me"
 STRIPE_SECRET_KEY="sk_test_replace_me"
 STRIPE_WEBHOOK_SECRET="whsec_replace_me"
+NEXT_PUBLIC_ENABLE_CMI="false"
+CMI_CLIENT_ID=""
+CMI_STORE_KEY=""
+NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="replace_with_base64_32_byte_key"
 ```
 
 ### Purpose of each variable
 
 - `DATABASE_URL`: PostgreSQL connection string for Prisma
+- `DATABASE_URL_POOLED`: optional pooled runtime connection string for hosted/serverless production
 - `NEXT_PUBLIC_BASE_URL`: base URL used by Stripe redirect URLs and absolute image URLs
 - `ADMIN_EMAILS`: comma-separated list of Clerk emails allowed in admin
 - `ADMIN_USER_IDS`: comma-separated list of Clerk user ids allowed in admin
@@ -184,6 +190,10 @@ STRIPE_WEBHOOK_SECRET="whsec_replace_me"
 - `CLERK_SECRET_KEY`: Clerk server key
 - `STRIPE_SECRET_KEY`: Stripe server secret
 - `STRIPE_WEBHOOK_SECRET`: Stripe webhook signature secret
+- `NEXT_PUBLIC_ENABLE_CMI`: optional public flag that exposes the CMI card option in checkout
+- `CMI_CLIENT_ID`: optional CMI merchant client id, required only when CMI card checkout is enabled
+- `CMI_STORE_KEY`: optional CMI signing key, required only when CMI card checkout is enabled
+- `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`: stable base64-encoded 32-byte key for server action encryption across deploys
 
 ## 8. Database Overview
 
